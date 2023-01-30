@@ -2,16 +2,9 @@
   "name": "movies-finder",
   "version": "1.0.0",
   "description": "movies finde rplugin for webview-bridged",
-  "main": "src/index.ts",
-  "types": "./src/types.ts",
-
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js"
-    },
-    "./package.json": "./package.json"
-  },
+  "main": "./dist/index.js",
+  "types": "./dist/types.d.ts",
+ 
 
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
