@@ -1,0 +1,2 @@
+const MoviesFinder = require("./dist");
+

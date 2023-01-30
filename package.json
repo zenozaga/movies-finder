@@ -1,0 +1,33 @@
+{
+  "name": "movies-finder",
+  "version": "1.0.0",
+  "description": "movies finde rplugin for webview-bridged",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc && webpack",
+    "start": "npx babel src --watch --out-dir dist",
+    "webpack": "webpack",
+    "prepublish": "yarn build && yarn webpack",
+    "server": "webpack server"
+  },
+  "keywords": [
+    "finder"
+  ],
+  "author": "zenozaga",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/lodash": "^4.14.191",
+    "ts-loader": "^9.4.2",
+    "typescript": "^4.9.4",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.11.1"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "lodash": "^4.17.21"
+  }
+}
