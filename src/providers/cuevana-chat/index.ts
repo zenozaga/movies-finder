@@ -1,496 +1,662 @@
-// @ts-ignore
-// import DefaultProvider from "../default-provider";
-// import Movie from "../../models/movie";
-// import Serie from "../../models/serie";
-// import Episode from "../../models/episode";
-// import Season from "../../models/season";
-// import { getHost, getOrigin, normalize } from "../../utils/helpers";
-// import Source from "../../models/source";
-// import Base64 from "../../utils/base64";
  
 
+import _, { get, join }  from "lodash";
  
+import DefaultProvider, { HomeType } from "../default-provider";
+import Movie  from "../../models/movie";
+import Serie from "../../models/serie";
+import Episode  from "../../models/episode";
+import Season from "../../models/season";
+import Cast from "../../models/cast";
+import Category from "../../models/category";
 
+import {
+    getHost,
+    getOrigin,
+    getTypeByExtension,
+    getYear,
+    normalize,
+    parseLanguage,
+    parseRuntime,
+    slugify,
+    tryAtob,
+    tryDate,
+    validDate
+} from "../../utils/helpers";
 
-// const parseDuration = (duration) => {
+import Source, { SourceResolution } from "../../models/source";
+import { load } from "cheerio";
+import Requester, { Response } from "../../models/requester";
+import { MediaTypes, SerieType, MovieType, SeasonType, SourceType, EpisodeType } from "../../types";
 
-//     try {
-        
-//         var hours = duration.match(/(\d+)h/);
-//         var minutes = duration.match(/(\d+)m/);
-//         var seconds = duration.match(/(\d+)s/);
+class CuevanaChat extends DefaultProvider {
 
-//         const addZero = (n) => n < 10 ? `0${n}` : n;
-
-//         hours = hours ? parseInt(hours[1]) : 0;
-//         minutes = minutes ? parseInt(minutes[1]) : 0;
-//         seconds = seconds ? parseInt(seconds[1]) : 0;
-        
-//         return `${addZero(hours)}:${addZero(minutes)}:${addZero(seconds)}`;
-
-
-//     } catch (error) {
-//         return duration;    
-//     }
-
-// };
-
-// const tryAtob = (str) => {
-//     try {
-//         return Base64.decode(str);
-//     } catch (error) {
-//         return null;
-//     }
-// }
-
-// class CuevanaChat extends DefaultProvider {
-
-//     static name = "CuevanaChat";
-//     static site = "https://cuevana3.chat/";
-//     static language = "es";
+    name = "CuevanaChat";
+    site = "https://cuevana3.chat/";
+    language = "es";
 
     
-//     match(urlOrID){
-//         return urlOrID.includes("cuevana3.chat");
-//     }
+    match(urlOrID:string) : boolean {
+        return urlOrID.includes("cuevana3");
+    }
     
     
-//     /**
-//      * Headers for the request
-//      * @returns {{}}
-//      */
+    /**
+     * Headers for the request
+     * @returns {{}}
+     */
 
-//     headers(extra = {}){
-//         return Object.assign({
-//             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
-//             "Origin": getOrigin(this.site),
-//           //  "Host": getHost(this.site),
-//             "Referer": this.site
-//         }, extra);
-//     }
-    
+    headers(extra = {}){
+        return Object.assign({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
+            "Origin": getOrigin(this.site) ?? this.site,
+          //  "Host": getHost(this.site),
+            "Referer": this.site
+        }, extra);
+    }
 
-//     async checkMovePermanent(promise){
 
-//         var $this = this;
-//         var body;
+    /**
+     * Check if the response is a 301 Moved Permanently
+     * @param promise 
+     * @returns 
+     */
 
-//         if(promise.then) body = (await promise).body;        
-//         if(typeof promise == "string") body = promise;
-//         if(typeof promise == "object") body = promise.body ?? promise.data;
+    async checkMovePermanent(promise?:Promise<Response>) : Promise<string> {
 
-//         if(typeof body == "string" && body.includes("301 Moved Permanently")){
-//             if(body.indexOf('The documen    t has moved <a href="') > -1){
-//                 var link = body.split('The document has moved <a href="')[1].split('">here</a>')[0];
-//                 $this.site = getOrigin(link);
-//                 return $this.requester.get(link, $this.headers(), false);
-//             }
-//         }
+        var $this = this;
+        var body;
 
-//         return await promise;
-
-//     }
-    
-
-//     async search (query, options = {}) {
-        
-//         let url = `${this.site}?s=${query}`;
-//         var response = await this.requester.get(url, this.headers());
- 
-
-//         try {
+        if(!promise) return "";
+        var body = (await promise).body ?? (await promise).string;
+       
+        if (typeof body == "string" && body.includes("301 Moved Permanently")) {
+            if(!body.includes("The document has moved <a href=")) return body;
             
-//             response = this.parseCollectionHTML(response.body);
+            var link = body.split('The document has moved <a href="')[1].split('">here</a>')[0];
+            var origin = getOrigin(link);
+            
+            if(!origin || !link) return body;
 
-//             if(response && response.length){
-//                 return response;
-//             }
+            $this.setSite(origin);
+            var result = await $this.requester?.get(link, $this.headers());
+            return result?.body ?? result?.string;
 
-//         } catch (error) {
-//             console.log(`Error: ${error}`)
-//         }
+        }
+
+        return body;
+
+    }
+
+    
 
   
-    
+    /**
+     * 
+     * @param {String} html 
+     * @returns {Array<Movie|Serie>}
+     */
+    parseCollectionHTML(html:string, selector?:string) : Array<MovieType|SerieType|EpisodeType> {
 
-//         return [];
-
-//     }
-
-//     async getById(idorLink, type = ""){
- 
-//         if(idorLink.includes("/serie/")){
-//             type = "tv";
-//         }else{
-//             type = type ?? "movie";
-//         }
+        var $ = load(html)
+        var list = $(selector ?? ".MovieList > li > .post, .MovieList > li > .TPost");
+        var returner = [];
 
 
-//         if(idorLink.includes('http')){
+        for (let index = 0; index < list.length; index++) {
+            const element = $(list[index]);
 
-//             var response = await this.requester.get(idorLink, this.headers({ "Referer": this.site }));
-
- 
-//             var html = response.body;
-//             var data = this.parseMovieHTML(html, type);
-//             if(data) data.link = idorLink;
-//             return data;
-        
-//         }else{
-
-//         }
-
-//     }
-
-
-//     async getEpisode(irOrLink, episode){
+            var link:string = element.find("a").attr("href") ?? "";
+            var image = element.find("img[data-src]")?.attr("data-src");
+            if (!image) image = element.find(".wp-post-image")?.attr("src");
+            var year = element.find(".Year")?.text()?.trim() ?? "";
+            var title = element.find(".Title:eq(0)")?.text()?.trim();
+            var poster = image?.replace(/(\-[0-9]{3}x([0-9]{3}))/g, "") ?? "";
+            var description = element.find(".Description")?.text()?.trim();
+            var year = element.find(".Year")?.text()?.trim() ?? "";
+            var rating = element.find(".Info .Vote")?.text()?.trim();
+            var release = element.find(".Info .Date")?.text()?.trim();
+            var duration = parseRuntime(element.find(".Info .Time")?.text()?.trim());
 
  
-//     }
-
-//     async genders(gender, options = {}){}
-
-
-//     /**
-//      * 
-//      * @param {Stirng} type 
-//      * @param {{}} options 
-//      * @returns Promise<Array<Movie|Serie>>
-//      * 
-//      * Get Media by types
-//      * 
-//      */
-
-//     async byType(type, options = {}){
-
-//         var url = this.site;
-//         var isMovie = !( type == "tv" || type == "serie" || type == "series");
-        
-//         if(!isMovie){
-//             url = `${this.site}serie`;
-//         }else{
-//             url = `${this.site}peliculas`;
-//         }
-
-//         var page = options.page ?? 1;
+            var poster = image ? this.fixUrl(image) : "";
+            var background = poster;
 
 
-//         if(isMovie){
 
-//             var repsonse = await this.requester.get(`${url}/page/${page}`, this.headers());
-//             return this.parseCollectionHTML(repsonse.body ?? repsonse);
-
-
-//         }else{
-
-//             url = `${this.site}/wp-admin/admin-ajax.php`;
-
-            
-
-//             var response = await this.checkMovePermanent(await this.requester.post(
-//                 url, 
-//                 (new URLSearchParams({
-//                     "action": "cuevana_ajax_pagination",
-//                     "query_vars":"",
-//                     "page": page,
-//                 } )).toString()
-//             ));
+            if (link.includes("/serie/")) {
 
  
-//             return this.parseCollectionHTML(response.body ?? response);
-            
-//         }
-         
-
  
-//     }
 
-    
-    
+                returner.push(Serie.fromObject({
+                    id: link,
+                    link: link,
+                    title: normalize(title),
+                    description: normalize(description),
+                    poster: poster,
+                    background: background,
+                    rating: rating,
+                    released: validDate(release) ? tryDate(release) : tryDate(year),
+                    fetcher: this.name,
+                    votes: 0,
+                    seasons: [],
+                    cast: [],
+                    genders: [],
+                    subtitle: "",
+                    year: year,
+                    trailers: [],
+                    type: MediaTypes.tv
+                }));
 
 
+            } else {
+ 
+                returner.push(Movie.fromObject({
+                    id: link,
+                    title: normalize(title),
+                    subtitle: normalize(title),
+                    description: normalize(description),
+                    duration: duration,
+                    type: MediaTypes.movie,
+                    rating: rating,
+                    released: release,
+                    poster: this.fixUrl(poster),
+                    background: this.fixUrl(background),
+                    trailers: [],
+                    genders: [],
+                    sources: [],
+                    cast: [],
+                    fetcher: this.name,
+                    year: release,
+                    link: link
+                }));
+            }
 
-//     /**
-//      * 
-//      * @param {String} html 
-//      * @returns {Array<Movie|Serie>}
-//      */
-//     parseCollectionHTML(html){
 
-//         var doc = new DOMParser().parseFromString(html, "text/html");
-//         var list = doc.querySelectorAll(".MovieList > li > .post, .MovieList > li > .TPost");
-//         var returner = [];
+        }
 
   
-//         for (let index = 0; index < list.length; index++) {
-//             const element = list[index];
-            
-//             var link = element.querySelector("a").href;
-//             var image = element.querySelector("img[data-src]")?.getAttribute("data-src");
-//             if(!image) image = element.querySelector(".wp-post-image")?.getAttribute("src");
+        return returner;
 
+    }
+
+
+    parseMovieHTML(html:string, type = "") : Movie|Serie|Episode {
+
+        var $this = this;
+
+        var $ = load(html);
+
+        var id = $("#top-single")?.attr("data-id");
+        var poster = $(".TPost .Image img[data-src]")?.attr('data-src');
+        var background = $(".backdrop > .Image img[data-src]")?.attr("data-src");
+        var title = $(".TPost .Title:eq(0)")?.text()?.trim();
+        var subtitle = $(".TPost .SubTitle")?.text()?.trim();
+        var description = $(".TPost .Description")?.text()?.trim();
+        var release = $(".TPost .meta")?.text()?.trim();
+        var rating = $("#TPVotes")?.attr("data-percent")?.trim();
+
+        var canonical = $("link[rel='canonical']")?.attr("href") ?? "";
+        var _season_episode = canonical?.match(/\-([0-9].*)x([0-9].*)/);
+
+        var year = `${release}`.match(/([0-9]{4})/g)?.[0] ?? release;
+        var runtime = parseRuntime(release);
+        type = canonical.includes("episodio") ? "episode" : type;
+
+        var cast:Cast[] = [];
+        var trailers:string[] = [];
+        var genres:Category[] = [];
+        var seasons:SeasonType[] = [];
+        var servers:Source[] = [];
+        var relates:(MovieType|SerieType)[] = [];
+
+
+
+
+        if (poster?.includes('tmdb.org')) {
+            poster = poster.replace(/\/p\/(.*?)\//g, "/p/original/");
+        }
+
+        if (background?.includes('tmdb.org')) {
+            background = background.replace(/\/p\/(.*?)\//g, "/p/original/");
+        }
+
+        if(poster) poster = this.fixUrl(poster);
+
+
+        if ($("#OptY iframe")) {
+            if($("#OptY iframe")?.attr("data-src")) trailers.push(`${$("#OptY iframe")?.attr("data-src")}`);
+        }
  
 
-//             if(link.includes("/serie/")){
-           
-//                 var serie = new Serie();
+        $("[data-embed]").each((index,ele) => {
 
-//                 serie.fetcher = this.name;
-//                 serie.link = link;
-//                 serie.title = element.querySelector(".Title")?.innerText?.trim();
-//                 serie.poster = image?.replace(/(\-[0-9]{3}x([0-9]{3}))/g,"");
-//                 serie.background = serie.poster;
-    
-//                 serie.rating = element.querySelector(".Vote")?.innerText?.trim();
-//                 serie.release = element.querySelector(".Date,.TPost .meta")?.innerText?.trim();
-//                 serie.description = element.querySelector(".Description")?.innerText?.trim();
+            var url = tryAtob($(ele).attr("data-embed") ?? "");
+            var name = `${$(ele).find(`img`).attr("alt")}`.trim();
+   
+            if(url) servers.push(Source.fromObject({
+                name: name ?? "",
+                url: this.fixUrl(url),
+                type: getTypeByExtension(url),
+                resolution: Source.parseResolution(name ?? ""),
+                lang: parseLanguage(name ?? ""),
+                from: canonical ?? id,
+                fetcher: this.name
+            }))
+
+        });
+
+        $(".InfoList a[href*='category']").each((index,ele) => {
+
+            var element = $(ele);
+            var id = element.attr("href")?.split("category/")[1] ?? ""
+            var link = `${this.site}/category/${id}`;
+            var name = element.text()?.trim() ?? "";
+
+            
+            genres.push(Category.fromObject({
+                id: id,
+                name: name,
+                link: link,
+                type: "category",
+                poster: "",
+                description: "",
+                fetcher: this.name
+            }));
+
+
+        });
+
+        $(".loadactor a").each((index,ele) => {
+
+            var element = $(ele);
+            var name = element.text()?.trim() ?? "";
+            var link = element.attr("href")?.replace("cast_tv", "actor") ?? "";
+            var id = link.split("actor/")[1] ?? "";
+
+ 
+            cast.push(Cast.fromObject({
+                name: name,
+                id: id,
+                type: "cast",
+                avatar: "",
+                link: link,
+                fetcher: this.name
+            }));
+
+        });
+
+        $("#select-season option").each((seasonIndex,ele) => {
+
+            var element = $(ele);
+            var id = `${element.val()}`?.trim() ?? "";
+            var name = element.text()?.trim();
+
+            var season = Season.fromObject({
+                id: id,
+                link: canonical ?? id,
+                name: name ?? "",
+                season: seasonIndex,
+                poster: "",
+                released: "",
+                episodes: [],
+                fetcher: this.name
+            })
+
+   
+
+            $(`#season-${id}.all-episodes li`).each((index,eps) => {
+
+
+                var episode = $(eps);
+
+                var link = episode.find("a")?.attr("href") ?? "";
+                var id = link.match(/post\-([0-9]*)\s/)?.[1];
+ 
+
+                var image = episode.find("img[data-src]")?.attr("data-src");
+                var title = episode.find(".Title")?.text()?.trim();
+
+                if (`${image}`.includes('tmdb.org')) {
+                    image = image!.replace(/\/p\/(.*?)\//g, "/p/original/");
+                }
+
+                season.addEpisode(Episode.fromObject({
+                    id: link ?? id,
+                    title: title ?? "",
+                    description: description,
+                    duration: runtime,
+                    released: release,
+                    rating: rating ?? "",
+                    votes: 0,
+                    episode: index + 1,
+                    season: seasonIndex,
+                    link: this.fixUrl(link),
+                    poster: image ? this.fixUrl(image) : "",
+                    servers: [],
+                    fetcher: this.name
+                }));
+
+            });
+
+
+            seasons.push(season);
+
+        });
+
+        
+        var _relates = this.parseCollectionHTML(html, ".MovieList.Rows > li > .post") as (MovieType|SerieType)[];
+        if(_relates.length > 0)  {
+            relates = relates.concat([
+                ..._relates
+            ])
+            
+        }
+
+        if (type == "tv") {
+
+
+            return Serie.fromObject({
+                id: canonical ?? id,
+                link: canonical ?? id,
+                title: title,
+                subtitle: subtitle,
+                description: description,
+                type: MediaTypes.movie,
+                rating: rating ?? "",
+                votes: 0,
+                released: validDate(release) ? tryDate(release) : tryDate(year),
+                poster: poster ?? "",
+                background: background ?? poster ?? "",
+                genders: genres,
+                seasons: seasons,
+                cast: cast,
+                trailers: trailers,
+                year: year,
+                fetcher: this.name,
+                relates: relates
+            });
+ 
+        } else if (type == "episode") {
+
+
+            return Episode.fromObject({
+                id: canonical ?? id,
+                title: title,
+                description: description,
+                duration: runtime,
+                released: validDate(release) ? tryDate(release) : tryDate(year),
+                rating: rating ?? "",
+                votes: 0,
+                episode: Number(_season_episode ? _season_episode[2] : 0),
+                season: Number(_season_episode ? _season_episode[1] : 0),
+                link: canonical ?? id,
+                poster: poster ?? "",
+                servers: servers,
+                fetcher: this.name
+            })
+
      
-//                 returner.push(serie);
-            
 
-//             }else{
+        } else {
 
-//                 var movie = new Movie();
+            return Movie.fromObject({
+                id: canonical ?? id,
+                link: canonical ?? id,
+                title: title,
+                subtitle: subtitle,
+                description: description,
+                duration: runtime,
+                type: MediaTypes.movie,
+                rating: rating ?? "",
+                released: validDate(release) ? tryDate(release) : tryDate(year),
+                poster: poster ?? "",
+                background: background ?? poster ?? "",
+                trailers: trailers,
+                genders: genres,
+                sources: servers,
+                year: year,
+                cast: cast,
+                fetcher: this.name,
+                relates: relates
+            })
+ 
 
-//                 movie.fetcher = this.name;
-//                 movie.link = link;
-//                 movie.title = element.querySelector(".Title")?.innerText?.trim();
-//                 movie.poster = image?.replace(/(\-[0-9]{3}x([0-9]{3}))/g,"");
-//                 movie.background = movie.poster;
-    
-//                 movie.rating = element.querySelector(".Vote")?.innerText?.trim();
-//                 movie.duration = parseDuration(element.querySelector(".Time")?.innerText?.trim());
-//                 movie.release = element.querySelector(".Date")?.innerText?.trim();
-//                 movie.description = element.querySelector(".Description")?.innerText?.trim();
-    
-//                 returner.push(movie);
-//             }
-
-    
-//         }
-
-//         doc = null;
-//         return returner;
-
-//     }
+        }
 
 
-//     parseMovieHTML(html, type = ""){
+    }
 
-//         var $this = this;
+    /**
+     * 
+     * @param {String} url 
+     */
+    fixUrl(url:string) {
 
-//         var doc = new DOMParser().parseFromString(html, "text/html");
+        if (url.startsWith("//")) {
+            url = "https:" + url;
+        }
+
+        return url;
+    }
+ 
+         
+    async byType(type: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]> {
         
-//         var id = doc.querySelector("#top-single")?.getAttribute("data-id");
-//         var poster = doc?.querySelector(".TPost .Image img[data-src]")?.getAttribute('data-src');
-//         var background = doc.querySelector(".backdrop > .Image img[data-src]")?.getAttribute("data-src");
-//         var title = doc.querySelector(".TPost .Title")?.innerText?.trim();
-//         var subtitle = doc.querySelector(".TPost .SubTitle")?.innerText?.trim();
-//         var description = doc.querySelector(".TPost .Description")?.innerText?.trim();
-//         var release = doc.querySelector(".TPost .meta")?.innerText?.trim();
-//         var rating = doc.querySelector("#TPVotes")?.getAttribute("data-percent")?.trim();
+        var url = this.site;
+        var isMovie = !( type == "tv" || type == "serie" || type == "series");
+        
+        if(!isMovie){
+            url = `${this.site}serie`;
+        }else{
+            url = `${this.site}peliculas`;
+        }
 
-//         var canonical = doc.querySelector("link[rel='canonical']")?.getAttribute("href") ?? "";
-//         var _season_episode = canonical?.match(/\-([0-9].*)x([0-9].*)/);
+        var page = get(options, "page", 1);
 
-//         type = canonical.includes("episodio") ? "episode" : type;
 
-//         var cast = [];
-//         var trailers = [];
-//         var genres = [];
-//         var seasons = [];
-//         var servers = [];
+        if(isMovie){
+
+            var repsonse = await this.requester.get(`${url}/page/${page}`, this.headers());
+            return this.parseCollectionHTML(repsonse.body ?? repsonse);
+
+
+        }else{
+
+            url = `${this.site}/wp-admin/admin-ajax.php`;
+
+            
+            var params = new URLSearchParams({
+                "action": "cuevana_ajax_pagination",
+                "query_vars":"",
+                "page": `${page}`,
+            })
+
+            var response = await this.checkMovePermanent(this.requester.post( url,  `${params}`));
+            if(!response) return [];
+
+ 
+            return this.parseCollectionHTML(response);
+            
+        }
+         
+    }
+
+
+    async search(query: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]> {
+        
+              
+        let url = `${this.site}/?s=${encodeURIComponent(query)}`;
+        var response = await this.requester.get(url, this.headers());
+        var body = response.body;
+
+        if(!body) throw new Error("No found results");
+
+
+        var list = this.parseCollectionHTML(body);
+
+        if(list && list.length > 0) {
+            console.log(list);
+            return list;
+        }
+
+      
+
+        return [];
+        
+    }
+    
+    async getById(idorLink: string, type?: string | undefined): Promise<MovieType | SerieType | EpisodeType> {
+        
+        if(idorLink.includes("/serie/")){
+            type = "tv";
+        }else{
+            type = type ?? "movie";
+        }
+
+
+        if(idorLink.includes('http')){
+
+            var response = await this.requester.get(idorLink, this.headers({ "Referer": this.site }));
+            var html = response.body;
+            var data = this.parseMovieHTML(html, type);
+            if(data) data.link = idorLink;
+
+            return data;
+        
+        };
+
+
+        throw new Error("Not found");
+
+     
+    }
+
+
+    top(): Promise<(MovieType | SerieType | EpisodeType)[]> {
+        throw new Error("Method not implemented.");
+    }
+    topMovies(): Promise<MovieType[]> {
+        throw new Error("Method not implemented.");
+    }
+    topSeries(): Promise<SerieType[]> {
+        throw new Error("Method not implemented.");
+    }
+    async home(): Promise<HomeType> {
+
+        var response = await this.requester.get(`${this.site}`, this.headers());
+        var body = response.body;
+        if(!body) throw new Error("No found results");
+
+        var episodes = this.parseCollectionHTML(body, ".episodes .post");
+        var series = this.parseCollectionHTML(body, ".series_listado .post");
+        var movies = this.parseCollectionHTML(body, ".MovieList.Rows .post");
+        var topSeries = this.parseCollectionHTML(body, "#aa-series .TPost");
+        var topMovies = this.parseCollectionHTML(body, ".MovieList.top .TPost");
+
+        return {
+            series:series as SerieType[],
+            movies:movies as MovieType[],
+            episodes: episodes as Episode[],
+            topMovies: topMovies as MovieType[],
+            topSeries: topSeries as SerieType[],
+        }
+    }
+    
+    movies(options?: {} | undefined): Promise<MovieType[]> {
+        return this.byType("movie", options) as Promise<MovieType[]>;
+    }
+    
+    movie(id: string, options?: any): Promise<MovieType> {
+        return this.getById(id, "movie") as Promise<MovieType>;
+    }
+
+    series(options?: {} | undefined): Promise<SerieType[]> {
+        return this.byType("tv", options) as Promise<SerieType[]>;
+    }
+    
+    serie(id: string, options?: any): Promise<SerieType> {
+        return this.getById(id, "tv") as Promise<SerieType>;
+    }
+
+    async seasons(serieID?: string | undefined, options?: any): Promise<SeasonType[]> {
+        
+        if(!serieID) throw new Error("serieID is required");
+        var serie = await this.getById(serieID!, "tv") ;
+        if(serie instanceof Serie) return serie.seasons;
+        return [];
+        
+    }
+
+    season(id: string, serieID?: string | undefined, options?: any): Promise<SeasonType> {
+        
+        return this.seasons(serieID, options).then(seasons => {
+            var season = seasons.find(s => `${s.id}` == `${id}`);
+            if(season) return season;
+            throw new Error("Not found");
+        });
+        
+    }
+
+    async episodes(seasonID?: string | undefined, serieID?: string | undefined, options?: any): Promise<EpisodeType[]> {
+        
+        if(!serieID) throw new Error("serieID is required");
+        if(!seasonID) throw new Error("seasonID is required");
+
+        var serie = await this.season( seasonID, serieID, options);
+        if(serie instanceof Serie) return serie.episodes;
+        return [];
+    }
+
+    async episode(id: string, seasonID?: string | undefined, serieID?: string | undefined, options?: any): Promise<EpisodeType> {
+        var episode = this.getById(id, "episode");
+        return episode as Promise<EpisodeType>;
+    }
+
+    async genders(): Promise<Category[]> {
         
 
-//         if(poster?.includes('tmdb.org')){
-//             poster = poster.replace(/\/p\/(.*?)\//g,"/p/original/");
-//         }
+        var response = await this.requester.get(`${this.site}/inicio`, this.headers());
+        var body = response.body;
+        if(!body) throw new Error("No body");
 
-//         if(background?.includes('tmdb.org')){
-//             background = background.replace(/\/p\/(.*?)\//g,"/p/original/");
-//         }
+        var $ = load(body);
+        var returner = [] as Category[];
 
+        var list = $('a[href*=genero]');
+        if(list.length > 0){
 
-//         if(doc.querySelector("#OptY iframe")){
-//             trailers.push(doc.querySelector("#OptY iframe")?.getAttribute("data-src"));
-//         }
+            list.each((index,element) => {
 
-//         doc.querySelectorAll("[data-embed]").forEach(element => {
+                var ele = $(element);
+                var link = ele.attr("href") ?? "";
+                var name = ele.text() ?? "";
+                var id = link.split("/").pop() ?? "";
 
+                if(id && name && link) returner.push(Category.fromObject({
+                    name: name,
+                    id: id,
+                    type: "category",
+                    link: `${this.site}/${link}`,
+                    poster: "",
+                    description: "",
+                    fetcher: this.name
+                }))
 
-//             var url = tryAtob(element.getAttribute("data-embed"));
-//             var name = `${element.querySelector(`img`).getAttribute("alt")}`.trim();
-  
-//             if(url){
+            })
 
-//                 let source = new Source();
+        }
 
-//                 source.fetcher = this.name;
-//                 source.from = name;
+        return returner;
 
-//                 source.url = url;
-//                 source.name = normalize(name);
+    }
 
-//                 source.type = "embed";
-//                 source.resolution = "HD";
-                
-//                 servers.push(source);
-                
-
-                 
- 
-//             }
-
-//         });
-
-//         doc.querySelectorAll(".InfoList a[href*='category']").forEach(element => {
-            
-//             genres.push({
-//                 id: element.href.split("category/")[1],
-//                 name: element.innerText?.trim(),
-//                 link: element.href
-//             });
-
-//         });
-
-//         doc.querySelectorAll(".loadactor a").forEach(element => {
-            
-//             cast.push({
-//                 name: element.innerText?.trim(),
-//                 link: element.href?.replace("cast_tv","actor")
-//             });
-
-//         });
-
-//         doc.querySelectorAll("#select-season option").forEach((element, seasonIndex) => {
-                
-//             var id = element.value;
-//             var name = element.innerText?.trim();
-
-//             var season = new Season();
-//             season.fetcher = $this.name;
-//             season.name = name;
-//             season.season = id;
-//             season.id = id;
- 
-//             doc.querySelectorAll(`#season-${id}.all-episodes li`).forEach((episode, index) => {
-
-
-//                 var link = episode.querySelector("a")?.href;
-//                 var id = link.match(/post\-([0-9]*)\s/);
-//                 id = id ? id[1] : null;
-
-
-//                 var image = episode.querySelector("img[data-src]")?.getAttribute("data-src");
-//                 var title = episode.querySelector(".Title")?.innerText?.trim();
-
-//                 if(image.includes('tmdb.org')){
-//                     image = image.replace(/\/p\/(.*?)\//g,"/p/original/");
-//                 }
- 
-//                 var episode_ = new Episode();
-//                 episode_.id = id;
-//                 episode_.episode = index + 1;
-//                 episode_.season = seasonIndex;
-
-//                 episode_.title = title;
-//                 episode_.link = $this.fixUrl(link);
-//                 episode_.poster = $this.fixUrl(image);
-                
-
-
-//                 season.addEpisode(episode_);
- 
-//             });
-    
- 
-//             seasons.push( season );
-    
-//         });
-
-
-//         if(type == "tv"){
-
-//             var serie = new Serie();
-//             serie.id = id;
-//             serie.fetcher = this.name;
-//             serie.poster = poster;
-//             serie.background = background;
-//             serie.title = title;
-//             serie.subtitle = subtitle;
-//             serie.description = description;
-//             serie.cast = cast;
-//             serie.genders = genres;
-//             serie.trailers = trailers;
-//             serie.servers = [];
-//             serie.seasons = seasons;
-//             serie.release = release;
-//             serie.rating = rating;
-            
-//             return serie;
-
-//         }else if(type == "episode"){
-
-//             var episode = new Episode();
-            
-//             episode.id = id;
-
-//             episode.season = _season_episode? (Number(_season_episode[1])) : '';
-//             episode.episode = _season_episode ? (Number(_season_episode[2]))  : '';
-
-//             episode.title = doc.querySelector(".Title")?.innerText?.trim() ?? `${title} ${episode.season}x${episode.episode}`;
-
-
-//             episode.link = canonical;
-//             episode.poster = poster;
-//             episode.servers = servers;
-
-//             episode.fetcher = this.name;
-
-//             return episode;
-
-//         }else{
-
-//             var movie = new Movie();
-
-//             movie.fetcher = this.name;
-//             movie.id = id;
-//             movie.poster = poster;
-//             movie.background = background;
-//             movie.title = title;
-//             movie.subtitle = subtitle;
-//             movie.description = description;
-//             movie.cast = cast;
-//             movie.genders = genres;
-//             movie.trailers = trailers;
-//             movie.servers = servers;
-//             movie.release = release;
-//             movie.rating = rating;
-//             movie.type = canonical.includes("episodio") ? "episode" : "movie";
-
-//             return movie;
-
-//         }
-
-
-//     }
-
-
-//     /**
-//      * 
-//      * @param {String} url 
-//      */
-//     fixUrl(url){
-
-//         if(url.startsWith("//")){
-//             url = "https:" + url;
-//         }
-
-//         return url;
-//     }
-    
+    cast(options?: any): Promise<Cast[]> {
+        throw new Error("Method not implemented.");
+    }
 
     
-// }
+}
 
-// export default CuevanaChat;
+export default CuevanaChat

@@ -30,10 +30,9 @@ export interface DefaultProviderType {
 
     match(urlOrID:string):boolean;
 
-    byType(type?:string, options?:{}):Promise<Array<MovieType|SerieType|EpisodeType>>;
-    bytType<T>(type?:string, options?:{}):Promise<Array<T>>;
-
+    byType(type:string, options?:{}):Promise<Array<MovieType|SerieType|EpisodeType>>;
     search(query:string, options?:{}):Promise<Array<MovieType|SerieType|EpisodeType>>;
+
     getById(id:string, type?:string):Promise<MovieType|SerieType|EpisodeType>;
 
     top():Promise<Array<MovieType|SerieType|EpisodeType>>;
@@ -88,14 +87,10 @@ class DefaultProvider implements DefaultProviderType {
         throw new Error("Method not implemented.");
     }
     
-    byType(type?: string | undefined, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]> {
+    byType(type: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]> {
         throw new Error("Method not implemented.");
     }
-
-    bytType<T>(type?: string | undefined, options?: {} | undefined): Promise<T[]> {
-        throw new Error("Method not implemented.");
-    }
-
+ 
     search(query: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]> {
         throw new Error("Method not implemented.");
     }

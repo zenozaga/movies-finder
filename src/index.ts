@@ -5,6 +5,8 @@ import DefaultProvider from "./providers/default-provider";
 
 import TMDBAPI from "./api/tmdb";
 import Tekilaz from "./providers/tekilaz";
+import Cuevana from "./providers/cuevana/index";
+import CuevanaChat from "./providers/cuevana-chat/index";
 
 export * from "./types";
  
@@ -23,8 +25,8 @@ export * from "./types";
 export function providers() : DefaultProvider[] {
 
     return [
-        // new CuevanaChat(),
-        // new Cuevana(),
+         new CuevanaChat(),
+         new Cuevana(),
         new Tekilaz()
     ];
 }

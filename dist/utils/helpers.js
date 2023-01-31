@@ -1,9 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getYear = exports.headersToObject = exports.parseRuntime = exports.parseQuality = exports.parseLanguage = exports.getTypeByExtension = exports.normalize = exports.getHost = exports.getOrigin = exports.isValidURI = exports.slugify = void 0;
+exports.tryAtob = exports.tryDate = exports.validDate = exports.getYear = exports.headersToObject = exports.parseRuntime = exports.parseQuality = exports.parseLanguage = exports.getTypeByExtension = exports.normalize = exports.getHost = exports.getOrigin = exports.isValidURI = exports.slugify = void 0;
 var lodash_1 = require("lodash");
 var source_1 = require("../models/source");
 var types_1 = require("../types");
+var base64_1 = require("./base64");
 function slugify(text) {
     return "".concat(text).toString().toLowerCase()
         .replace(/\s+/g, '-') // Replace spaces with -
@@ -130,15 +131,10 @@ function parseQuality(quality) {
 }
 exports.parseQuality = parseQuality;
 var parseDuration = function (duration) {
+    var _a, _b;
     try {
-        var hours = duration.match(/(\d+)h/);
-        var minutes = duration.match(/(\d+)m/);
-        var seconds = duration.match(/(\d+)s/);
-        var addZero = function (n) {
-            if (n == null)
-                return "00";
-            return Number(n) < 10 ? "0".concat(n) : "".concat(n);
-        };
+        var hours = ((_a = duration.match(/(\d+)h/)) === null || _a === void 0 ? void 0 : _a[1]) || 0;
+        var minutes = ((_b = duration.match(/(\d+)m/)) === null || _b === void 0 ? void 0 : _b[1]) || 0;
         return "".concat(hours, "h ").concat(minutes, "m");
     }
     catch (error) {
@@ -173,3 +169,22 @@ function getYear(date) {
     return "".concat(_data.getFullYear());
 }
 exports.getYear = getYear;
+function validDate(date) {
+    return !isNaN((new Date(date)).getTime());
+}
+exports.validDate = validDate;
+function tryDate(date, def) {
+    if (!validDate(date))
+        return def !== null && def !== void 0 ? def : date;
+    return new Date(date).toISOString();
+}
+exports.tryDate = tryDate;
+function tryAtob(str) {
+    try {
+        return (0, base64_1.decode)(str);
+    }
+    catch (error) {
+        return str;
+    }
+}
+exports.tryAtob = tryAtob;

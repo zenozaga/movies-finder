@@ -23,3 +23,6 @@ export declare function headersToObject(headers?: Headers): {
     [key: string]: string;
 };
 export declare function getYear(date: string): string;
+export declare function validDate(date: string): boolean;
+export declare function tryDate(date: string, def?: string): string;
+export declare function tryAtob(str: string): string;

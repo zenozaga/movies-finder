@@ -57,6 +57,8 @@ exports.apis = exports.providers = void 0;
 var requester_1 = __importDefault(require("./models/requester"));
 var tmdb_1 = __importDefault(require("./api/tmdb"));
 var tekilaz_1 = __importDefault(require("./providers/tekilaz"));
+var index_1 = __importDefault(require("./providers/cuevana/index"));
+var index_2 = __importDefault(require("./providers/cuevana-chat/index"));
 __exportStar(require("./types"), exports);
 // import CuevanaChat from "./providers/cuevana-chat";
 // import Cuevana from "./providers/cuevana";
@@ -66,8 +68,8 @@ __exportStar(require("./types"), exports);
  */
 function providers() {
     return [
-        // new CuevanaChat(),
-        // new Cuevana(),
+        new index_2.default(),
+        new index_1.default(),
         new tekilaz_1.default()
     ];
 }

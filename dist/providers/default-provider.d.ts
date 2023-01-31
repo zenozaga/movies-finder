@@ -21,8 +21,7 @@ export interface DefaultProviderType {
     setSite(site: string): void;
     setRequester(requester: Requester): void;
     match(urlOrID: string): boolean;
-    byType(type?: string, options?: {}): Promise<Array<MovieType | SerieType | EpisodeType>>;
-    bytType<T>(type?: string, options?: {}): Promise<Array<T>>;
+    byType(type: string, options?: {}): Promise<Array<MovieType | SerieType | EpisodeType>>;
     search(query: string, options?: {}): Promise<Array<MovieType | SerieType | EpisodeType>>;
     getById(id: string, type?: string): Promise<MovieType | SerieType | EpisodeType>;
     top(): Promise<Array<MovieType | SerieType | EpisodeType>>;
@@ -50,8 +49,7 @@ declare class DefaultProvider implements DefaultProviderType {
     headers(extra?: any): {} | undefined;
     setSite(site: string): void;
     match(urlOrID: string): boolean;
-    byType(type?: string | undefined, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]>;
-    bytType<T>(type?: string | undefined, options?: {} | undefined): Promise<T[]>;
+    byType(type: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]>;
     search(query: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]>;
     getById(id: string, type?: string | undefined): Promise<MovieType | SerieType | EpisodeType>;
     top(): Promise<(MovieType | SerieType | EpisodeType)[]>;

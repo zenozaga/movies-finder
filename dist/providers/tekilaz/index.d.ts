@@ -33,7 +33,7 @@ declare class Tekilaz extends DefaultProvider {
      */
     match(urlOrID: string): boolean;
     home(): Promise<HomeType>;
-    byType(type?: string | undefined, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]>;
+    byType(type: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]>;
     search(query: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]>;
     getById(idorLink: string, type?: string | undefined): Promise<MovieType | SerieType | EpisodeType>;
     top(): Promise<(MovieType | SerieType)[]>;

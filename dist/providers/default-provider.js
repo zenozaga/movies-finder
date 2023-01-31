@@ -31,9 +31,6 @@ var DefaultProvider = /** @class */ (function () {
     DefaultProvider.prototype.byType = function (type, options) {
         throw new Error("Method not implemented.");
     };
-    DefaultProvider.prototype.bytType = function (type, options) {
-        throw new Error("Method not implemented.");
-    };
     DefaultProvider.prototype.search = function (query, options) {
         throw new Error("Method not implemented.");
     };

@@ -1,6 +1,7 @@
 import { isNumber } from "lodash";
 import { SourceResolution, SourceTypes } from "../models/source";
 import { Languages } from "../types";
+import { decode } from "./base64";
 
  
 export function slugify(text:string) {
@@ -166,18 +167,10 @@ const parseDuration = (duration:string) => {
 
     try {
 
-        var hours = duration.match(/(\d+)h/);
-        var minutes = duration.match(/(\d+)m/);
-        var seconds = duration.match(/(\d+)s/);
+        var hours = duration.match(/(\d+)h/)?.[1] || 0;
+        var minutes = duration.match(/(\d+)m/)?.[1] || 0;
 
-        const addZero = (n?:any) => {
-            if(n == null) return "00";
-            return Number(n) < 10 ? `0${n}` : `${n}`;
-        }
-
-    
         return `${hours}h ${minutes}m`;
-
 
     } catch (error) {
         return duration;
@@ -220,3 +213,21 @@ export function getYear(date:string){
     if(isNaN(_data.getTime())) return "";
     return `${_data.getFullYear()}`;
 }
+
+export function validDate(date:string){
+    return !isNaN((new Date(date)).getTime());
+}
+
+export function tryDate(date:string, def?:string){
+    if(!validDate(date)) return def ?? date;
+    return new Date(date).toISOString();
+}
+
+export function tryAtob(str:string){
+    try {
+        return decode(str);
+    } catch (error) {
+        return str;
+    }
+}
+

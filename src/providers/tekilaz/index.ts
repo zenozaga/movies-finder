@@ -422,7 +422,8 @@ class Tekilaz extends DefaultProvider{
     
     }
 
-    async byType(type?: string | undefined, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]> {
+ 
+    async byType(type: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]> {
                 
         var $this = this;
         var isMovie =  type == MediaTypes.movie;
