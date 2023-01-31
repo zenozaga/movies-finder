@@ -520,7 +520,6 @@ class Cuevana extends DefaultProvider {
         var list = this.parseCollectionHTML(body);
 
         if(list && list.length > 0) {
-            console.log(list);
             return list;
         }
 

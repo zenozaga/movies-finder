@@ -486,7 +486,6 @@ var Cuevana = /** @class */ (function (_super) {
                             throw new Error("No found results");
                         list = this.parseCollectionHTML(body);
                         if (list && list.length > 0) {
-                            console.log(list);
                             return [2 /*return*/, list];
                         }
                         return [2 /*return*/, []];
