@@ -332,9 +332,7 @@ const MovieFinder = {
 
         })
 
- 
         instance.emit("mf:loaded", MovieFinder);
-        console.log("MoviesFinder loaded");
 
     },
 

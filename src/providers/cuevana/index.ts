@@ -103,30 +103,31 @@ class Cuevana extends DefaultProvider {
 
 
         for (let index = 0; index < list.length; index++) {
+
             const element = $(list[index]);
 
             var link:string = element.find("a").attr("href") ?? "";
             var image = element.find("img[data-src]")?.attr("data-src");
             if (!image) image = element.find(".wp-post-image")?.attr("src");
+            var year = element.find(".Year")?.text()?.trim() ?? "";
+            var title = element.find(".Title:eq(0)")?.text()?.trim();
+            var poster = image?.replace(/(\-[0-9]{3}x([0-9]{3}))/g, "") ?? "";
+            var description = element.find(".Description")?.text()?.trim();
+            var year = element.find(".Year")?.text()?.trim() ?? "";
+            var rating = element.find(".Info .Vote")?.text()?.trim();
+            var release = element.find(".Info .Date")?.text()?.trim();
+            var duration = parseRuntime(element.find(".Info .Time")?.text()?.trim());
+
+ 
+            var poster = image ? this.fixUrl(image) : "";
+            var background = poster;
 
  
 
 
             if (link.includes("/serie/")) {
 
- 
-                var fetcher = this.name;
-                var link = link;
-                var title = element.find(".Title")?.text()?.trim();
-                var poster = image?.replace(/(\-[0-9]{3}x([0-9]{3}))/g, "") ?? "";
-                var background = poster;
-
-                var rating = element.find(".Vote")?.text()?.trim();
-                var release = parseRuntime(element.find(".Date,.TPost .meta")?.text()?.trim());
-                var description = element.find(".Description")?.text()?.trim();
-
-                var year = `${release}`.match(/([0-9]{4})/g)?.[0] ?? release;
-
+  
                 returner.push(Serie.fromObject({
                     id: link,
                     link: link,
@@ -136,7 +137,7 @@ class Cuevana extends DefaultProvider {
                     background: background,
                     rating: rating,
                     released: release,
-                    fetcher: fetcher,
+                    fetcher: this.name,
                     votes: 0,
                     seasons: [],
                     cast: [],
@@ -151,17 +152,6 @@ class Cuevana extends DefaultProvider {
             } else {
 
  
-                var fetcher = this.name;
-                var link = link;
-                var title = element.find(".Title")?.text()?.trim();
-                var poster = image?.replace(/(\-[0-9]{3}x([0-9]{3}))/g, "") ?? "";
-                var background = poster;
-
-                var rating = element.find(".Vote")?.text()?.trim();
-                var duration = parseRuntime(element.find(".Time")?.text()?.trim());
-                var release = element.find(".Date")?.text()?.trim();
-                var description = element.find(".Description")?.text()?.trim();
-
                 returner.push(Movie.fromObject({
                     id: link,
                     title: normalize(title),

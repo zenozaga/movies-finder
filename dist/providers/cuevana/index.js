@@ -150,7 +150,7 @@ var Cuevana = /** @class */ (function (_super) {
      * @returns {Array<Movie|Serie>}
      */
     Cuevana.prototype.parseCollectionHTML = function (html, selector) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
         var $ = (0, cheerio_1.load)(html);
         var list = $(selector !== null && selector !== void 0 ? selector : ".MovieList > li > .post, .MovieList > li > .TPost");
         var returner = [];
@@ -160,16 +160,17 @@ var Cuevana = /** @class */ (function (_super) {
             var image = (_b = element.find("img[data-src]")) === null || _b === void 0 ? void 0 : _b.attr("data-src");
             if (!image)
                 image = (_c = element.find(".wp-post-image")) === null || _c === void 0 ? void 0 : _c.attr("src");
+            var year = (_f = (_e = (_d = element.find(".Year")) === null || _d === void 0 ? void 0 : _d.text()) === null || _e === void 0 ? void 0 : _e.trim()) !== null && _f !== void 0 ? _f : "";
+            var title = (_h = (_g = element.find(".Title:eq(0)")) === null || _g === void 0 ? void 0 : _g.text()) === null || _h === void 0 ? void 0 : _h.trim();
+            var poster = (_j = image === null || image === void 0 ? void 0 : image.replace(/(\-[0-9]{3}x([0-9]{3}))/g, "")) !== null && _j !== void 0 ? _j : "";
+            var description = (_l = (_k = element.find(".Description")) === null || _k === void 0 ? void 0 : _k.text()) === null || _l === void 0 ? void 0 : _l.trim();
+            var year = (_p = (_o = (_m = element.find(".Year")) === null || _m === void 0 ? void 0 : _m.text()) === null || _o === void 0 ? void 0 : _o.trim()) !== null && _p !== void 0 ? _p : "";
+            var rating = (_r = (_q = element.find(".Info .Vote")) === null || _q === void 0 ? void 0 : _q.text()) === null || _r === void 0 ? void 0 : _r.trim();
+            var release = (_t = (_s = element.find(".Info .Date")) === null || _s === void 0 ? void 0 : _s.text()) === null || _t === void 0 ? void 0 : _t.trim();
+            var duration = (0, helpers_1.parseRuntime)((_v = (_u = element.find(".Info .Time")) === null || _u === void 0 ? void 0 : _u.text()) === null || _v === void 0 ? void 0 : _v.trim());
+            var poster = image ? this.fixUrl(image) : "";
+            var background = poster;
             if (link.includes("/serie/")) {
-                var fetcher = this.name;
-                var link = link;
-                var title = (_e = (_d = element.find(".Title")) === null || _d === void 0 ? void 0 : _d.text()) === null || _e === void 0 ? void 0 : _e.trim();
-                var poster = (_f = image === null || image === void 0 ? void 0 : image.replace(/(\-[0-9]{3}x([0-9]{3}))/g, "")) !== null && _f !== void 0 ? _f : "";
-                var background = poster;
-                var rating = (_h = (_g = element.find(".Vote")) === null || _g === void 0 ? void 0 : _g.text()) === null || _h === void 0 ? void 0 : _h.trim();
-                var release = (0, helpers_1.parseRuntime)((_k = (_j = element.find(".Date,.TPost .meta")) === null || _j === void 0 ? void 0 : _j.text()) === null || _k === void 0 ? void 0 : _k.trim());
-                var description = (_m = (_l = element.find(".Description")) === null || _l === void 0 ? void 0 : _l.text()) === null || _m === void 0 ? void 0 : _m.trim();
-                var year = (_p = (_o = "".concat(release).match(/([0-9]{4})/g)) === null || _o === void 0 ? void 0 : _o[0]) !== null && _p !== void 0 ? _p : release;
                 returner.push(serie_1.default.fromObject({
                     id: link,
                     link: link,
@@ -179,7 +180,7 @@ var Cuevana = /** @class */ (function (_super) {
                     background: background,
                     rating: rating,
                     released: release,
-                    fetcher: fetcher,
+                    fetcher: this.name,
                     votes: 0,
                     seasons: [],
                     cast: [],
@@ -191,15 +192,6 @@ var Cuevana = /** @class */ (function (_super) {
                 }));
             }
             else {
-                var fetcher = this.name;
-                var link = link;
-                var title = (_r = (_q = element.find(".Title")) === null || _q === void 0 ? void 0 : _q.text()) === null || _r === void 0 ? void 0 : _r.trim();
-                var poster = (_s = image === null || image === void 0 ? void 0 : image.replace(/(\-[0-9]{3}x([0-9]{3}))/g, "")) !== null && _s !== void 0 ? _s : "";
-                var background = poster;
-                var rating = (_u = (_t = element.find(".Vote")) === null || _t === void 0 ? void 0 : _t.text()) === null || _u === void 0 ? void 0 : _u.trim();
-                var duration = (0, helpers_1.parseRuntime)((_w = (_v = element.find(".Time")) === null || _v === void 0 ? void 0 : _v.text()) === null || _w === void 0 ? void 0 : _w.trim());
-                var release = (_y = (_x = element.find(".Date")) === null || _x === void 0 ? void 0 : _x.text()) === null || _y === void 0 ? void 0 : _y.trim();
-                var description = (_0 = (_z = element.find(".Description")) === null || _z === void 0 ? void 0 : _z.text()) === null || _0 === void 0 ? void 0 : _0.trim();
                 returner.push(movie_1.default.fromObject({
                     id: link,
                     title: (0, helpers_1.normalize)(title),

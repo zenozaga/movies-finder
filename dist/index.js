@@ -473,7 +473,6 @@ var MovieFinder = {
             });
         });
         instance.emit("mf:loaded", MovieFinder);
-        console.log("MoviesFinder loaded");
     },
     /// list of providers
     providers: providers,
