@@ -152,7 +152,7 @@ var CuevanaChat = /** @class */ (function (_super) {
     CuevanaChat.prototype.parseCollectionHTML = function (html, selector, type) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
         var $ = (0, cheerio_1.load)(html);
-        var list = $(selector !== null && selector !== void 0 ? selector : ".Top .MovieList > li > .post, .MovieList > li > .TPost");
+        var list = $(selector !== null && selector !== void 0 ? selector : "main .MovieList > li > .post");
         var returner = [];
         for (var index = 0; index < list.length; index++) {
             var element = $(list[index]);
