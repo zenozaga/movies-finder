@@ -16,6 +16,13 @@ export type HomeType = {
 }
 
 
+export type Section = {
+    type: "poster" | "big" | "thumb" | "thumb_small",
+    title: string,
+    items: MovieType[] | SerieType[] | EpisodeType[]
+}
+
+
 export interface DefaultProviderType {
 
     name:string;
@@ -40,6 +47,8 @@ export interface DefaultProviderType {
     topSeries():Promise<Array<SerieType>>;
 
     home():Promise<HomeType>;
+    sections():Promise<Section[]>;
+
 
     movies(options?:{}):Promise<Array<MovieType>>;
     movie(id:string, options?:any):Promise<MovieType>;
@@ -154,6 +163,11 @@ class DefaultProvider implements DefaultProviderType {
         throw new Error("Method not implemented.");
     }
      
+
+    async sections(): Promise<Section[]> {
+        return []
+    }
+
 }
 
 

@@ -1,5 +1,5 @@
-import { MediaTypes, SerieType } from "../types";
-import Cast, { CastType } from "./cast";
+import { EpisodeType, MediaTypes, SerieType } from "../types";
+import Cast, { CastType, Network } from "./cast";
 import Category, { CategoryType } from "./category";
 import Serie from "./serie";
 import Source, { SourceType } from "./source";
@@ -8,21 +8,21 @@ export interface MovieType {
 
     id: string;
     link: string;
-    
+
     title: string;
     subtitle: string;
     description: string;
     duration: string;
-    
+
     type: string;
-    
+
     rating: string;
     released: string;
     year?: string;
 
     poster: string;
     background: string;
-    
+
     trailers: string[];
 
     genders: CategoryType[];
@@ -33,16 +33,19 @@ export interface MovieType {
     imdbID?: string;
     tmdbID?: string;
 
-    
-    relates?:Array<MovieType|SerieType|null>
+
+    relates?: Array<MovieType | SerieType | EpisodeType>
     fetcher: string;
-    
+
+
+    networks?: Network[];
+
 
 }
 
 class Movie implements MovieType {
-    
- 
+
+
     id: string;
     link: string;
     title: string;
@@ -61,12 +64,13 @@ class Movie implements MovieType {
     cast: CastType[];
     imdbID?: string | undefined;
     tmdbID?: string | undefined;
-    relates?: (MovieType | SerieType | null)[] | undefined;
+    relates?: Array<MovieType | SerieType | EpisodeType>;
     fetcher: string;
+    networks?: Network[] | undefined;
 
-    
-    
-    constructor(id:string, link:string, title:string, subtitle:string, description:string, duration:string, type:string, rating:string, released:string, year:string, poster:string, background:string, trailers:string[], sources:SourceType[], imdbID:string, tmdbID:string, fetcher:string, cast:CastType[], genders:CategoryType[], relates:(MovieType|SerieType|null)[]){
+
+
+    constructor(id: string, link: string, title: string, subtitle: string, description: string, duration: string, type: string, rating: string, released: string, year: string, poster: string, background: string, trailers: string[], sources: SourceType[], imdbID: string, tmdbID: string, fetcher: string, cast: CastType[], genders: CategoryType[], relates?: Array<MovieType | SerieType | EpisodeType>, networks?: Network[]) {
         this.id = id;
         this.link = link;
         this.title = title;
@@ -86,15 +90,37 @@ class Movie implements MovieType {
         this.fetcher = fetcher;
         this.cast = cast;
         this.genders = genders;
-        this.relates = relates;
+        this.relates = relates ?? [];
+        this.networks = networks ?? [];
     }
 
 
-    static fromObject(obj:MovieType){
-        return new Movie(obj.id, obj.link, obj.title, obj.subtitle, obj.description, obj.duration, obj.type, obj.rating, obj.released, obj.year || "", obj.poster, obj.background, obj.trailers, obj.sources, obj.imdbID || "", obj.tmdbID || "", obj.fetcher, obj.cast, obj.genders, obj.relates ?? []);
+    static fromObject(obj: MovieType) {
+        return new Movie(obj.id,
+            obj.link,
+            obj.title,
+            obj.subtitle,
+            obj.description,
+            obj.duration,
+            obj.type,
+            obj.rating,
+            obj.released,
+            obj.year || "",
+            obj.poster,
+            obj.background,
+            obj.trailers,
+            obj.sources,
+            obj.imdbID || "",
+            obj.tmdbID || "",
+            obj.fetcher,
+            obj.cast,
+            obj.genders,
+            obj.relates ?? [],
+            obj.networks ?? []
+        );
     }
 
-    toObject(){
+    toObject() {
         return {
             id: this.id,
             title: this.title,
@@ -114,11 +140,12 @@ class Movie implements MovieType {
             fetcher: this.fetcher,
             cast: this.cast,
             genders: this.genders,
-            relates: this.relates,
+            relates: this.relates ?? [],
+            networks: this.networks ?? []
         }
     }
-    
-    toString(){
+
+    toString() {
         return JSON.stringify(this.toObject());
     }
 

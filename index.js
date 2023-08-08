@@ -1,2 +1,3 @@
-const MoviesFinder = require("./dist");
+const MoviesFinder = require("./dist/src");
+module.exports = MoviesFinder;
 

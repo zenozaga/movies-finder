@@ -36,25 +36,21 @@ export function isValidURI(str:string) {
 export function getOrigin(url:string){
 
     if(!isValidURI(url)) return null;
+
+    if(globalThis.URL){
     
-    if(typeof window !== "undefined"){
-
-        if(window.URL){
-            return new URL(url).origin;
-        }else{
-            var a = document.createElement('a');
-            a.href = url;
-            return a.origin;
-        }
-
+        return new URL(url).origin;
+    
     }else{
-        
+         
         // get origin by regex
         var match = url.match(/^(https?:\/\/[^/]+)/);
         if(match){
             return match[1];
         }
+
     }
+  
 
     return url;
 

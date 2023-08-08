@@ -1,5 +1,5 @@
-import { MediaTypes } from "../types";
-import Cast, { CastType } from "./cast";
+import { EpisodeType, MediaTypes } from "../types";
+import Cast, { CastType, Network } from "./cast";
 import Category, { CategoryType } from "./category";
 import Movie, { MovieType } from "./movie";
 import Season, { SeasonType } from "./season";
@@ -30,9 +30,10 @@ export interface SerieType {
     tmdbID?: string;
 
     trailers: string[];
-    relates?:Array<MovieType|SerieType|null>
+    relates?:Array<MovieType|SerieType|EpisodeType>
 
     fetcher: string;
+    networks?: Network[];
 
 }
 
@@ -57,11 +58,12 @@ export default class Serie implements SerieType{
     imdbID?: string | undefined;
     tmdbID?: string | undefined;
     trailers: string[];
-    relates?: (MovieType | SerieType | null)[] | undefined;
+    relates?: Array<MovieType|SerieType|EpisodeType>;
     fetcher: string;
+    networks?: Network[] | undefined;
 
  
-    constructor(id:string, link:string , title:string, subtitle:string, description:string,  rating:string, votes:number, released:string, year:string, poster:string, background:string, trailers:string[], imdbID:string, tmdbID:string, fetcher:string, seasons:SeasonType[], cast:CastType[], genders:CategoryType[], relates:(MovieType | SerieType | null)[] | undefined = []){
+    constructor(id:string, link:string , title:string, subtitle:string, description:string,  rating:string, votes:number, released:string, year:string, poster:string, background:string, trailers:string[], imdbID:string, tmdbID:string, fetcher:string, seasons:SeasonType[], cast:CastType[], genders:CategoryType[], relates:Array<MovieType|SerieType|EpisodeType> | undefined = [], networks:Network[] | undefined = []){
         this.id = id;
         this.link = link;
         this.title = title;
@@ -86,9 +88,11 @@ export default class Serie implements SerieType{
 
         this.cast = cast;
         this.genders = genders;
-        this.relates = relates;
+        this.relates = relates ?? [];
 
         this.type = MediaTypes.tv;
+
+        this.networks = networks;
         
     }
 
@@ -113,7 +117,8 @@ export default class Serie implements SerieType{
             obj.seasons,
             obj.cast,
             obj.genders,
-            obj.relates ?? []
+            obj.relates ?? [],
+            obj.networks ?? []
         )
     }
 
@@ -140,7 +145,9 @@ export default class Serie implements SerieType{
             year: this.year,
             seasons: this.seasons,
             cast: this.cast,
-            genders:this.genders
+            genders:this.genders,
+            relates: this.relates ?? [],
+            networks: this.networks ?? []
         }
     }
 

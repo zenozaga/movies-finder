@@ -133,7 +133,9 @@ export default class Source  implements SourceType {
             type: this.type,
             headers: this.headers,
             from: this.from,
-            fetcher: this.fetcher
+            fetcher: this.fetcher,
+            lang: this.lang,
+            name: this.name
         };
     }
 

@@ -2,7 +2,7 @@
 
 import _, { get, join }  from "lodash";
  
-import DefaultProvider, { HomeType } from "../default-provider";
+import DefaultProvider, { HomeType, Section } from "../default-provider";
 import Movie  from "../../models/movie";
 import Serie from "../../models/serie";
 import Episode  from "../../models/episode";
@@ -31,7 +31,7 @@ import { MediaTypes, SerieType, MovieType, SeasonType, SourceType, EpisodeType }
 class Cuevana extends DefaultProvider {
 
     name = "Cuevana";
-    site = "https://www3.cuevana3.ai/";
+    site = "https://w4.cuevana3.ai/";
     language = "es";
 
     
@@ -666,6 +666,53 @@ class Cuevana extends DefaultProvider {
         throw new Error("Method not implemented.");
     }
 
+ 
+    async sections(): Promise<Section[]> {
+
+        var home = await this.home();
+        var returner = [] as Section[];
+
+
+        if(home.topMovies?.length || home.topSeries?.length ) returner.push({
+            title: "Top de Hoy",
+            items: [...(home.topMovies ?? []), ...(home.topSeries ?? [])].sort() as any,
+            type: "poster",
+        })
+
+        if(home.episodes && home.episodes.length) returner.push({
+            title: "Ultimos episodios",
+            items: home.episodes,
+            type: "thumb",
+        })
+
+        
+        if(home.movies && home.movies.length) returner.push({
+            title: "Peliculas",
+            items: home.movies,
+            type: "poster",
+        })
+
+        if(home.series && home.series.length) returner.push({
+            title: "Series",
+            items: home.series,
+            type: "poster",
+        })
+
+
+        if(home.topMovies && home.topMovies.length) returner.push({
+            title: "Peliculas de hoy",
+            items: home.topMovies,
+            type: "poster",
+        })
+
+        if(home.topSeries && home.topSeries.length) returner.push({
+            title: "Series de hoy",
+            items: home.topSeries,
+            type: "poster",
+        })
+        
+        return returner;
+   }
     
 }
 

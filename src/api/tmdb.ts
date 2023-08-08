@@ -1,6 +1,6 @@
 import { load } from "cheerio";
 import _, {has , get ,set, isNumber } from "lodash";
-import Cast from "../models/cast";
+import Cast, { Network, NetworkType } from "../models/cast";
 import Category from "../models/category";
 import Episode from "../models/episode";
 import Movie from "../models/movie";
@@ -90,6 +90,7 @@ class TMDBAPI extends DefaultProvider{
             genders:[] as Category[],
             cast:[] as Cast[],
             trailers:[] as string[],
+            networks:[] as Network[]
         };
 
         data.title = doc(".title.ott_true h2 a")?.text()?.trim();
@@ -168,6 +169,60 @@ class TMDBAPI extends DefaultProvider{
         }
 
 
+ 
+        var providerImage = doc(".provider img")
+        if(providerImage.length){
+
+            var image = providerImage.attr("src");
+            if(image) image = `${this.site}${image}`
+
+            var name = providerImage.attr("alt");
+            
+            var networkLink = doc("[haref*=network/]").attr("href");
+            if(networkLink) networkLink = `${this.site}${networkLink}`;
+
+            var networkImage = doc("[haref*=network/] img").attr("src");
+            if(networkImage) networkImage = `${this.site}${networkImage}`;
+            
+            var homepage = doc(`.homepage .social_link [class="glyphicons_v2 link"]`)?.parent()?.attr("href");
+
+
+            if(image && name){
+                data.networks.push({
+                    name: name?.replace("Now Streaming on ", ""),
+                    type: NetworkType.streaming,
+                    url: homepage ?? networkLink,
+                    image: image
+                });
+            }
+
+        }
+
+        var socialLinks = doc(".social_link");
+
+        if(socialLinks.length){
+            socialLinks.each((index, ele) => {
+
+                var a = doc(ele);
+                var link = a.attr("href");
+                var name = a.text();
+
+                /// onlye facebook, twitter and instagram
+                if(link && name && (link.includes("facebook") || link.includes("twitter") || link.includes("instagram"))){
+                    data.networks.push({
+                        name: name,
+                        type: NetworkType.social,
+                        url: link,
+                        image: ""
+                    });
+                }
+ 
+
+            })
+        }
+        
+
+
         return data;
     }
 
@@ -241,7 +296,8 @@ class TMDBAPI extends DefaultProvider{
                             sources: [],
                             cast: [],
                             fetcher: this.name,
-                            tmdbID: data.id
+                            tmdbID: data.id,
+                            networks: [],
                         }));
     
                     }else{
@@ -274,7 +330,8 @@ class TMDBAPI extends DefaultProvider{
                                 }) ?? [],
                                 sources: [],
                                 cast: [],
-                                fetcher: this.name
+                                fetcher: this.name,
+                                networks: [],
                             }));
                     }
                 }
@@ -319,7 +376,8 @@ class TMDBAPI extends DefaultProvider{
             sources: [],
             cast: data.cast,
             fetcher: this.name,
-            tmdbID: id
+            tmdbID: id,
+            networks: data.networks,
         });
         
     }
@@ -365,7 +423,9 @@ class TMDBAPI extends DefaultProvider{
             seasons: [],
             cast: parsed.cast,
             trailers: parsed.trailers,
-            fetcher: this.name
+            fetcher: this.name,
+            tmdbID: id,
+            networks: parsed.networks,
         });
 
 

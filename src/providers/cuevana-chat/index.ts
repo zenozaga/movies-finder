@@ -2,7 +2,7 @@
 
 import _, { get, join }  from "lodash";
  
-import DefaultProvider, { HomeType } from "../default-provider";
+import DefaultProvider, { HomeType, Section } from "../default-provider";
 import Movie  from "../../models/movie";
 import Serie from "../../models/serie";
 import Episode  from "../../models/episode";
@@ -32,12 +32,12 @@ import { MediaTypes, SerieType, MovieType, SeasonType, SourceType, EpisodeType }
 class CuevanaChat extends DefaultProvider {
 
     name = "CuevanaChat";
-    site = "https://cuevana3.chat/";
+    site = "https://cuevana5.bid/";
     language = "es";
 
     
     match(urlOrID:string) : boolean {
-        return urlOrID.includes("cuevana3");
+        return urlOrID.includes("cuevana5");
     }
     
     
@@ -96,7 +96,7 @@ class CuevanaChat extends DefaultProvider {
      * @param {String} html 
      * @returns {Array<Movie|Serie>}
      */
-    parseCollectionHTML(html:string, selector?:string) : Array<MovieType|SerieType|EpisodeType> {
+    parseCollectionHTML(html:string, selector?:string, type?:string) : Array<MovieType|SerieType|EpisodeType> {
 
         var $ = load(html)
         var list = $(selector ?? ".MovieList > li > .post, .MovieList > li > .TPost");
@@ -104,9 +104,14 @@ class CuevanaChat extends DefaultProvider {
 
 
         for (let index = 0; index < list.length; index++) {
+            
             const element = $(list[index]);
-
             var link:string = element.find("a").attr("href") ?? "";
+            var isMovie = link?.includes("/serie/") == false;
+ 
+            if(type && MediaTypes.movie == type && isMovie == false) continue;
+            if(type && MediaTypes.tv == type && isMovie == true) continue;
+
             var image = element.find("img[data-src]")?.attr("data-src");
             if (!image) image = element.find(".wp-post-image")?.attr("src");
             var year = element.find(".Year")?.text()?.trim() ?? "";
@@ -124,7 +129,7 @@ class CuevanaChat extends DefaultProvider {
 
 
 
-            if (link.includes("/serie/")) {
+            if (!isMovie) {
 
  
  
@@ -375,7 +380,7 @@ class CuevanaChat extends DefaultProvider {
                 trailers: trailers,
                 year: year,
                 fetcher: this.name,
-                relates: relates
+                relates: relates ?? []
             });
  
         } else if (type == "episode") {
@@ -394,7 +399,8 @@ class CuevanaChat extends DefaultProvider {
                 link: canonical ?? id,
                 poster: poster ?? "",
                 servers: servers,
-                fetcher: this.name
+                fetcher: this.name,
+                relates: relates ?? []
             })
 
      
@@ -446,7 +452,7 @@ class CuevanaChat extends DefaultProvider {
         
         var url = this.site;
         var isMovie = !( type == "tv" || type == "serie" || type == "series");
-        
+   
         if(!isMovie){
             url = `${this.site}serie`;
         }else{
@@ -456,30 +462,9 @@ class CuevanaChat extends DefaultProvider {
         var page = get(options, "page", 1);
 
 
-        if(isMovie){
+        var repsonse = await this.requester.get(`${url}/page/${page}`, this.headers());
+        return this.parseCollectionHTML(repsonse.body ?? repsonse, undefined, type);
 
-            var repsonse = await this.requester.get(`${url}/page/${page}`, this.headers());
-            return this.parseCollectionHTML(repsonse.body ?? repsonse);
-
-
-        }else{
-
-            url = `${this.site}/wp-admin/admin-ajax.php`;
-
-            
-            var params = new URLSearchParams({
-                "action": "cuevana_ajax_pagination",
-                "query_vars":"",
-                "page": `${page}`,
-            })
-
-            var response = await this.checkMovePermanent(this.requester.post( url,  `${params}`));
-            if(!response) return [];
-
- 
-            return this.parseCollectionHTML(response);
-            
-        }
          
     }
 
@@ -542,6 +527,7 @@ class CuevanaChat extends DefaultProvider {
     topSeries(): Promise<SerieType[]> {
         throw new Error("Method not implemented.");
     }
+
     async home(): Promise<HomeType> {
 
         var response = await this.requester.get(`${this.site}`, this.headers());
@@ -655,7 +641,55 @@ class CuevanaChat extends DefaultProvider {
         throw new Error("Method not implemented.");
     }
 
-    
+ 
+
+   async sections(): Promise<Section[]> {
+
+        var home = await this.home();
+        var returner = [] as Section[];
+
+
+        if(home.topMovies?.length || home.topSeries?.length ) returner.push({
+            title: "Top de Hoy",
+            items: [...(home.topMovies ?? []), ...(home.topSeries ?? [])] as any,
+            type: "poster",
+        })
+
+        if(home.episodes && home.episodes.length) returner.push({
+            title: "Ultimos episodios",
+            items: home.episodes,
+            type: "thumb",
+        })
+
+        
+        if(home.movies && home.movies.length) returner.push({
+            title: "Peliculas",
+            items: home.movies,
+            type: "poster",
+        })
+
+        if(home.series && home.series.length) returner.push({
+            title: "Series",
+            items: home.series,
+            type: "poster",
+        })
+
+
+        if(home.topMovies && home.topMovies.length) returner.push({
+            title: "Peliculas de hoy",
+            items: home.topMovies,
+            type: "poster",
+        })
+
+        if(home.topSeries && home.topSeries.length) returner.push({
+            title: "Series de hoy",
+            items: home.topSeries,
+            type: "poster",
+        })
+        
+        return returner;
+   }
+   
 }
 
 export default CuevanaChat

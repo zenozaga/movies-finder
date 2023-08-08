@@ -1,3 +1,16 @@
+export enum NetworkType {
+    streaming = "streaming",
+    social = "social",
+    official = "official"
+}
+
+export interface Network {
+    name: string;
+    image: string;
+    url?: string;
+    type?:NetworkType
+}
+
 export interface CastType {
 
     id: string;
