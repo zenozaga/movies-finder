@@ -99,7 +99,7 @@ class CuevanaChat extends DefaultProvider {
     parseCollectionHTML(html:string, selector?:string, type?:string) : Array<MovieType|SerieType|EpisodeType> {
 
         var $ = load(html)
-        var list = $(selector ?? ".MovieList > li > .post, .MovieList > li > .TPost");
+        var list = $(selector ?? ".Top .MovieList > li > .post, .MovieList > li > .TPost");
         var returner = [];
 
 
