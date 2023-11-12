@@ -222,7 +222,7 @@ var CuevanaChat = /** @class */ (function (_super) {
     };
     CuevanaChat.prototype.parseMovieHTML = function (html, type) {
         var _this = this;
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
         if (type === void 0) { type = ""; }
         var $this = this;
         var $ = (0, cheerio_1.load)(html);
@@ -260,7 +260,7 @@ var CuevanaChat = /** @class */ (function (_super) {
         $("[data-embed]").each(function (index, ele) {
             var _a;
             var url = (0, helpers_1.tryAtob)((_a = $(ele).attr("data-embed")) !== null && _a !== void 0 ? _a : "");
-            var name = "".concat($(ele).find("img").attr("alt")).trim();
+            var name = "".concat($(ele).find("span:eq(0)").text()).trim();
             if (url)
                 servers.push(source_1.default.fromObject({
                     name: name !== null && name !== void 0 ? name : "",
@@ -304,15 +304,17 @@ var CuevanaChat = /** @class */ (function (_super) {
             }));
         });
         $("#select-season option").each(function (seasonIndex, ele) {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             var element = $(ele);
             var id = (_b = (_a = "".concat(element.val())) === null || _a === void 0 ? void 0 : _a.trim()) !== null && _b !== void 0 ? _b : "";
             var name = (_c = element.text()) === null || _c === void 0 ? void 0 : _c.trim();
+            var season_number = element.val();
+            season_number = (_d = parseInt(season_number)) !== null && _d !== void 0 ? _d : (seasonIndex + 1);
             var season = season_1.default.fromObject({
                 id: id,
                 link: canonical !== null && canonical !== void 0 ? canonical : id,
                 name: name !== null && name !== void 0 ? name : "",
-                season: seasonIndex,
+                season: season_number,
                 poster: "",
                 released: "",
                 episodes: [],
@@ -337,7 +339,7 @@ var CuevanaChat = /** @class */ (function (_super) {
                     rating: rating !== null && rating !== void 0 ? rating : "",
                     votes: 0,
                     episode: index + 1,
-                    season: seasonIndex,
+                    season: season_number,
                     link: _this.fixUrl(link),
                     poster: image ? _this.fixUrl(image) : "",
                     servers: [],
@@ -361,8 +363,8 @@ var CuevanaChat = /** @class */ (function (_super) {
                 rating: rating !== null && rating !== void 0 ? rating : "",
                 votes: 0,
                 released: (0, helpers_1.validDate)(release) ? (0, helpers_1.tryDate)(release) : (0, helpers_1.tryDate)(year),
-                poster: poster !== null && poster !== void 0 ? poster : "",
-                background: (_v = background !== null && background !== void 0 ? background : poster) !== null && _v !== void 0 ? _v : "",
+                poster: poster ? this.fixUrl(poster) : "",
+                background: background ? this.fixUrl(background) : "",
                 genders: genres,
                 seasons: seasons,
                 cast: cast,
@@ -384,7 +386,7 @@ var CuevanaChat = /** @class */ (function (_super) {
                 episode: Number(_season_episode ? _season_episode[2] : 0),
                 season: Number(_season_episode ? _season_episode[1] : 0),
                 link: canonical !== null && canonical !== void 0 ? canonical : id,
-                poster: poster !== null && poster !== void 0 ? poster : "",
+                poster: poster ? this.fixUrl(poster) : "",
                 servers: servers,
                 fetcher: this.name,
                 relates: relates !== null && relates !== void 0 ? relates : []
@@ -401,8 +403,8 @@ var CuevanaChat = /** @class */ (function (_super) {
                 type: types_1.MediaTypes.movie,
                 rating: rating !== null && rating !== void 0 ? rating : "",
                 released: (0, helpers_1.validDate)(release) ? (0, helpers_1.tryDate)(release) : (0, helpers_1.tryDate)(year),
-                poster: poster !== null && poster !== void 0 ? poster : "",
-                background: (_w = background !== null && background !== void 0 ? background : poster) !== null && _w !== void 0 ? _w : "",
+                poster: poster ? this.fixUrl(poster) : "",
+                background: background ? this.fixUrl(background) : "",
                 trailers: trailers,
                 genders: genres,
                 sources: servers,

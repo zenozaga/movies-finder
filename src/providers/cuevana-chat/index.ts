@@ -238,7 +238,7 @@ class CuevanaChat extends DefaultProvider {
         $("[data-embed]").each((index,ele) => {
 
             var url = tryAtob($(ele).attr("data-embed") ?? "");
-            var name = `${$(ele).find(`img`).attr("alt")}`.trim();
+            var name = `${$(ele).find(`span:eq(0)`).text()}`.trim();
    
             if(url) servers.push(Source.fromObject({
                 name: name ?? "",
@@ -298,11 +298,14 @@ class CuevanaChat extends DefaultProvider {
             var id = `${element.val()}`?.trim() ?? "";
             var name = element.text()?.trim();
 
+            var season_number:any = element.val();
+            season_number = parseInt(season_number) ?? (seasonIndex + 1);
+
             var season = Season.fromObject({
                 id: id,
                 link: canonical ?? id,
                 name: name ?? "",
-                season: seasonIndex,
+                season: season_number,
                 poster: "",
                 released: "",
                 episodes: [],
@@ -318,7 +321,7 @@ class CuevanaChat extends DefaultProvider {
 
                 var link = episode.find("a")?.attr("href") ?? "";
                 var id = link.match(/post\-([0-9]*)\s/)?.[1];
- 
+  
 
                 var image = episode.find("img[data-src]")?.attr("data-src");
                 var title = episode.find(".Title")?.text()?.trim();
@@ -336,7 +339,7 @@ class CuevanaChat extends DefaultProvider {
                     rating: rating ?? "",
                     votes: 0,
                     episode: index + 1,
-                    season: seasonIndex,
+                    season: season_number,
                     link: this.fixUrl(link),
                     poster: image ? this.fixUrl(image) : "",
                     servers: [],
@@ -372,8 +375,8 @@ class CuevanaChat extends DefaultProvider {
                 rating: rating ?? "",
                 votes: 0,
                 released: validDate(release) ? tryDate(release) : tryDate(year),
-                poster: poster ?? "",
-                background: background ?? poster ?? "",
+                poster: poster ? this.fixUrl(poster) : "",
+                background:  background ? this.fixUrl(background) : "",
                 genders: genres,
                 seasons: seasons,
                 cast: cast,
@@ -397,7 +400,7 @@ class CuevanaChat extends DefaultProvider {
                 episode: Number(_season_episode ? _season_episode[2] : 0),
                 season: Number(_season_episode ? _season_episode[1] : 0),
                 link: canonical ?? id,
-                poster: poster ?? "",
+                poster:  poster ? this.fixUrl(poster) : "",
                 servers: servers,
                 fetcher: this.name,
                 relates: relates ?? []
@@ -417,8 +420,8 @@ class CuevanaChat extends DefaultProvider {
                 type: MediaTypes.movie,
                 rating: rating ?? "",
                 released: validDate(release) ? tryDate(release) : tryDate(year),
-                poster: poster ?? "",
-                background: background ?? poster ?? "",
+                poster:  poster ? this.fixUrl(poster) : "",
+                background:  background ? this.fixUrl(background) : "",
                 trailers: trailers,
                 genders: genres,
                 sources: servers,
