@@ -32,12 +32,12 @@ import { MediaTypes, SerieType, MovieType, SeasonType, SourceType, EpisodeType }
 class CuevanaChat extends DefaultProvider {
 
     name = "CuevanaChat";
-    site = "https://cuevana5.bid/";
+    site = "https://cuevana.pics/";
     language = "es";
 
     
     match(urlOrID:string) : boolean {
-        return urlOrID.includes("cuevana5");
+        return  urlOrID.includes("//cuevana5") || urlOrID.includes("//cuevana");
     }
     
     

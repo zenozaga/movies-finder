@@ -80,12 +80,12 @@ var CuevanaChat = /** @class */ (function (_super) {
     function CuevanaChat() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.name = "CuevanaChat";
-        _this.site = "https://cuevana5.bid/";
+        _this.site = "https://cuevana.pics/";
         _this.language = "es";
         return _this;
     }
     CuevanaChat.prototype.match = function (urlOrID) {
-        return urlOrID.includes("cuevana5");
+        return urlOrID.includes("//cuevana5") || urlOrID.includes("//cuevana");
     };
     /**
      * Headers for the request
