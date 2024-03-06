@@ -6,7 +6,6 @@
 // import Episode from "../../models/episode";
 // import Season from "../../models/season";
 // import { getHost, getOrigin } from "../../utils/helpers";
-Object.defineProperty(exports, "__esModule", { value: true });
 // class Tinyzone extends DefaultProvider{
 //     static name = "Tinyzone";
 //     static site = "https://ww1.tinyzone.org/";

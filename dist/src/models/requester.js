@@ -1,21 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var Requester = /** @class */ (function () {
-    function Requester() {
+class Requester {
+    get(url, headers, noFollow) {
+        throw new Error("Method not implemented.");
     }
-    Requester.prototype.get = function (url, headers, noFollow) {
+    post(url, body, headers, noFollow) {
         throw new Error("Method not implemented.");
-    };
-    Requester.prototype.post = function (url, body, headers, noFollow) {
+    }
+    head(url, headers, noFollow) {
         throw new Error("Method not implemented.");
-    };
-    Requester.prototype.head = function (url, headers, noFollow) {
-        throw new Error("Method not implemented.");
-    };
-    Requester.from = function (obj) {
+    }
+    static from(obj) {
         return {
-            get: function (url, headers, noFollow) {
-                return obj.get(url, headers, noFollow).then(function (response) {
+            get(url, headers, noFollow) {
+                return obj.get(url, headers, noFollow).then((response) => {
                     var _a, _b, _c;
                     return {
                         get string() {
@@ -39,8 +37,8 @@ var Requester = /** @class */ (function () {
                     };
                 });
             },
-            post: function (url, body, headers, noFollow) {
-                return obj.post(url, body, headers, noFollow).then(function (response) {
+            post(url, body, headers, noFollow) {
+                return obj.post(url, body, headers, noFollow).then((response) => {
                     var _a, _b, _c;
                     return {
                         get string() {
@@ -64,8 +62,8 @@ var Requester = /** @class */ (function () {
                     };
                 });
             },
-            head: function (url, headers, noFollow) {
-                return obj.head(url, headers, noFollow).then(function (response) {
+            head(url, headers, noFollow) {
+                return obj.head(url, headers, noFollow).then((response) => {
                     var _a, _b, _c;
                     return {
                         get string() {
@@ -90,7 +88,6 @@ var Requester = /** @class */ (function () {
                 });
             }
         };
-    };
-    return Requester;
-}());
+    }
+}
 exports.default = Requester;

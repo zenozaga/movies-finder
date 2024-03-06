@@ -23,12 +23,12 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var lodash_1 = __importStar(require("lodash"));
+const lodash_1 = __importStar(require("lodash"));
 function toKeys(key) {
     if ((0, lodash_1.isArray)(key)) {
-        return key.map(function (k) { return "".concat(k); });
+        return key.map(k => `${k}`);
     }
-    return ["".concat(key)];
+    return [`${key}`];
 }
 function getMultiple(obj, key) {
     var keys = toKeys(key);
@@ -39,40 +39,38 @@ function getMultiple(obj, key) {
     }
     return null;
 }
-var Collect = /** @class */ (function () {
-    function Collect(data) {
-        if (data === void 0) { data = {}; }
+class Collect {
+    constructor(data = {}) {
         this.data = {};
         this.data = data;
     }
-    Collect.from = function (data) {
+    static from(data) {
         return new Collect(data);
-    };
-    Collect.prototype.asString = function (key, def) {
+    }
+    asString(key, def) {
         var _a, _b;
-        return "".concat((_b = (_a = getMultiple(this.data, key)) !== null && _a !== void 0 ? _a : def) !== null && _b !== void 0 ? _b : "");
-    };
-    Collect.prototype.asNumber = function (key, def) {
+        return `${(_b = (_a = getMultiple(this.data, key)) !== null && _a !== void 0 ? _a : def) !== null && _b !== void 0 ? _b : ""}`;
+    }
+    asNumber(key, def) {
         var _a, _b;
         return Number((_b = (_a = getMultiple(this.data, key)) !== null && _a !== void 0 ? _a : def) !== null && _b !== void 0 ? _b : 0);
-    };
-    Collect.prototype.asBoolean = function (key, def) {
+    }
+    asBoolean(key, def) {
         var _a, _b;
         return Boolean((_b = (_a = getMultiple(this.data, key)) !== null && _a !== void 0 ? _a : def) !== null && _b !== void 0 ? _b : false);
-    };
-    Collect.prototype.asArray = function (key, def) {
+    }
+    asArray(key, def) {
         var _a, _b;
         return (_b = (_a = getMultiple(this.data, key)) !== null && _a !== void 0 ? _a : def) !== null && _b !== void 0 ? _b : [];
-    };
-    Collect.prototype.asObject = function (key, def) {
+    }
+    asObject(key, def) {
         var _a, _b;
         return (_b = (_a = getMultiple(this.data, key)) !== null && _a !== void 0 ? _a : def) !== null && _b !== void 0 ? _b : {};
-    };
-    Collect.prototype.each = function (key, callback) {
-        lodash_1.default.each(getMultiple(this.data, key), function (value, key) {
-            callback(value, "".concat(key));
+    }
+    each(key, callback) {
+        lodash_1.default.each(getMultiple(this.data, key), (value, key) => {
+            callback(value, `${key}`);
         });
-    };
-    return Collect;
-}());
+    }
+}
 exports.default = Collect;

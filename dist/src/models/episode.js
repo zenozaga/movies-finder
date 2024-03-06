@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var Episode = /** @class */ (function () {
-    function Episode(id, title, description, duration, released, rating, votes, episode, season, link, poster, servers, fetcher, imdbID, tmdbID, relates) {
+class Episode {
+    constructor(id, title, description, duration, released, rating, votes, episode, season, link, poster, servers, fetcher, imdbID, tmdbID, relates) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -19,11 +19,11 @@ var Episode = /** @class */ (function () {
         this.tmdbID = tmdbID;
         this.relates = relates !== null && relates !== void 0 ? relates : [];
     }
-    Episode.fromObject = function (obj) {
+    static fromObject(obj) {
         var _a, _b, _c;
         return new Episode(obj.id, obj.title, obj.description, obj.duration, obj.released, obj.rating, obj.votes, obj.episode, obj.season, obj.link, obj.poster, obj.servers, obj.fetcher, (_a = obj.imdbID) !== null && _a !== void 0 ? _a : "", (_b = obj.tmdbID) !== null && _b !== void 0 ? _b : "", (_c = obj.relates) !== null && _c !== void 0 ? _c : []);
-    };
-    Episode.prototype.toObject = function () {
+    }
+    toObject() {
         var _a;
         return {
             id: this.id,
@@ -43,10 +43,9 @@ var Episode = /** @class */ (function () {
             tmdbID: this.tmdbID,
             relates: (_a = this.relates) !== null && _a !== void 0 ? _a : []
         };
-    };
-    Episode.prototype.toString = function () {
+    }
+    toString() {
         return JSON.stringify(this.toObject());
-    };
-    return Episode;
-}());
+    }
+}
 exports.default = Episode;

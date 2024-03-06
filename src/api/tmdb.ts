@@ -4,7 +4,6 @@ import Cast, { Network, NetworkType } from "../models/cast";
 import Category from "../models/category";
 import Episode from "../models/episode";
 import Movie from "../models/movie";
-import Requester from "../models/requester";
 import Season from "../models/season";
 import Serie from "../models/serie";
 import DefaultProvider, { HomeType } from "../providers/default-provider";

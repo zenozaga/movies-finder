@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SourceResolution = exports.SourceTypes = void 0;
-var helpers_1 = require("../utils/helpers");
+const helpers_1 = require("../utils/helpers");
 var SourceTypes;
 (function (SourceTypes) {
     SourceTypes["MP4"] = "mp4";
@@ -19,8 +19,8 @@ var SourceResolution;
     SourceResolution["FULLHD"] = "1080p";
     SourceResolution["UHD"] = "4k";
 })(SourceResolution = exports.SourceResolution || (exports.SourceResolution = {}));
-var Source = /** @class */ (function () {
-    function Source(from, url, resolution, type, headers, fetcher, lang, name) {
+class Source {
+    constructor(from, url, resolution, type, headers, fetcher, lang, name) {
         this.from = from;
         this.url = url;
         this.resolution = Source.parseResolution(resolution);
@@ -30,7 +30,7 @@ var Source = /** @class */ (function () {
         this.lang = (0, helpers_1.parseLanguage)(lang || "latino");
         this.name = name || "unknown";
     }
-    Source.parseResolution = function (resolution) {
+    static parseResolution(resolution) {
         switch ((resolution + "").toLowerCase()) {
             case '240':
             case '240p':
@@ -56,8 +56,8 @@ var Source = /** @class */ (function () {
             default:
                 return SourceResolution.HD;
         }
-    };
-    Source.parseType = function (type) {
+    }
+    static parseType(type) {
         switch ((type + "").toLowerCase()) {
             case 'mp4':
                 return SourceTypes.MP4;
@@ -71,11 +71,11 @@ var Source = /** @class */ (function () {
             default:
                 return SourceTypes.MP4;
         }
-    };
-    Source.fromObject = function (json) {
+    }
+    static fromObject(json) {
         return new Source(json.from, json.url, json.resolution, json.type, json.headers, json.fetcher, json.lang, json.name);
-    };
-    Source.prototype.toJSON = function () {
+    }
+    toJSON() {
         return {
             url: this.url,
             resolution: this.resolution,
@@ -86,10 +86,9 @@ var Source = /** @class */ (function () {
             lang: this.lang,
             name: this.name
         };
-    };
-    Source.prototype.toString = function () {
+    }
+    toString() {
         return JSON.stringify(this.toJSON());
-    };
-    return Source;
-}());
+    }
+}
 exports.default = Source;

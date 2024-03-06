@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.decode = exports.encode = void 0;
-var buffer_1 = require("buffer");
+const buffer_1 = require("buffer");
 function encode(data) {
     return buffer_1.Buffer.from(data).toString('base64');
 }

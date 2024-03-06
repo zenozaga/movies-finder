@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var Category = /** @class */ (function () {
-    function Category(name, id, type, link, poster, description, fetcher, tmdID, imdbID) {
+class Category {
+    constructor(name, id, type, link, poster, description, fetcher, tmdID, imdbID) {
         this.name = name;
         this.id = id;
         this.type = type;
@@ -10,10 +10,10 @@ var Category = /** @class */ (function () {
         this.description = description;
         this.fetcher = fetcher;
     }
-    Category.fromObject = function (obj) {
+    static fromObject(obj) {
         return new Category(obj.name, obj.id, obj.type, obj.link, obj.poster, obj.description, obj.fetcher, obj.tmdID, obj.imdbID);
-    };
-    Category.prototype.toObject = function () {
+    }
+    toObject() {
         return {
             name: this.name,
             id: this.id,
@@ -25,10 +25,9 @@ var Category = /** @class */ (function () {
             tmdID: this.tmdID,
             imdbID: this.imdbID
         };
-    };
-    Category.prototype.toString = function () {
+    }
+    toString() {
         return JSON.stringify(this.toObject());
-    };
-    return Category;
-}());
+    }
+}
 exports.default = Category;

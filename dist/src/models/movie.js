@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var types_1 = require("../types");
-var Movie = /** @class */ (function () {
-    function Movie(id, link, title, subtitle, description, duration, type, rating, released, year, poster, background, trailers, sources, imdbID, tmdbID, fetcher, cast, genders, relates, networks) {
+const types_1 = require("../types");
+class Movie {
+    constructor(id, link, title, subtitle, description, duration, type, rating, released, year, poster, background, trailers, sources, imdbID, tmdbID, fetcher, cast, genders, relates, networks) {
         this.id = id;
         this.link = link;
         this.title = title;
@@ -25,11 +25,11 @@ var Movie = /** @class */ (function () {
         this.relates = relates !== null && relates !== void 0 ? relates : [];
         this.networks = networks !== null && networks !== void 0 ? networks : [];
     }
-    Movie.fromObject = function (obj) {
+    static fromObject(obj) {
         var _a, _b;
         return new Movie(obj.id, obj.link, obj.title, obj.subtitle, obj.description, obj.duration, obj.type, obj.rating, obj.released, obj.year || "", obj.poster, obj.background, obj.trailers, obj.sources, obj.imdbID || "", obj.tmdbID || "", obj.fetcher, obj.cast, obj.genders, (_a = obj.relates) !== null && _a !== void 0 ? _a : [], (_b = obj.networks) !== null && _b !== void 0 ? _b : []);
-    };
-    Movie.prototype.toObject = function () {
+    }
+    toObject() {
         var _a, _b;
         return {
             id: this.id,
@@ -53,10 +53,9 @@ var Movie = /** @class */ (function () {
             relates: (_a = this.relates) !== null && _a !== void 0 ? _a : [],
             networks: (_b = this.networks) !== null && _b !== void 0 ? _b : []
         };
-    };
-    Movie.prototype.toString = function () {
+    }
+    toString() {
         return JSON.stringify(this.toObject());
-    };
-    return Movie;
-}());
+    }
+}
 exports.default = Movie;

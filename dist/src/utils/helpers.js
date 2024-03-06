@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.tryAtob = exports.tryDate = exports.validDate = exports.getYear = exports.headersToObject = exports.parseRuntime = exports.parseQuality = exports.parseLanguage = exports.getTypeByExtension = exports.normalize = exports.getHost = exports.getOrigin = exports.isValidURI = exports.slugify = void 0;
-var lodash_1 = require("lodash");
-var source_1 = require("../models/source");
-var types_1 = require("../types");
-var base64_1 = require("./base64");
+const lodash_1 = require("lodash");
+const source_1 = require("../models/source");
+const types_1 = require("../types");
+const base64_1 = require("./base64");
 function slugify(text) {
-    return "".concat(text).toString().toLowerCase()
+    return `${text}`.toString().toLowerCase()
         .replace(/\s+/g, '-') // Replace spaces with -
         .replace(/[^\w\-]+/g, '') // Remove all non-word chars
         .replace(/\-\-+/g, '-') // Replace multiple - with single
@@ -74,11 +74,11 @@ function getHost(url) {
 }
 exports.getHost = getHost;
 function normalize(str) {
-    return "".concat(str).normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+    return `${str}`.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
 }
 exports.normalize = normalize;
 function getTypeByExtension(url) {
-    var _url = "".concat(url).toLowerCase();
+    var _url = `${url}`.toLowerCase();
     if (_url.endsWith(".mp4"))
         return source_1.SourceTypes.MP4;
     if (_url.endsWith(".m3u8"))
@@ -92,7 +92,7 @@ function getTypeByExtension(url) {
 exports.getTypeByExtension = getTypeByExtension;
 function parseLanguage(lang) {
     // lowercase and normalize
-    var _lang = normalize(lang).toLowerCase();
+    const _lang = normalize(lang).toLowerCase();
     if ((_lang.includes("castellano") || _lang == "es" || _lang.includes("español") || _lang.includes("spanish") || _lang.includes("espanol")) && !_lang.includes("latino")) {
         return types_1.Languages.cast;
     }
@@ -104,7 +104,7 @@ function parseLanguage(lang) {
 exports.parseLanguage = parseLanguage;
 function parseQuality(quality) {
     // lowercase and normalize
-    var _quality = normalize(quality).toLowerCase();
+    const _quality = normalize(quality).toLowerCase();
     if (_quality.includes("2160p") || _quality.includes("2160") || _quality.includes("4k")) {
         return source_1.SourceResolution.UHD;
     }
@@ -123,12 +123,12 @@ function parseQuality(quality) {
     return source_1.SourceResolution.HD;
 }
 exports.parseQuality = parseQuality;
-var parseDuration = function (duration) {
+const parseDuration = (duration) => {
     var _a, _b;
     try {
         var hours = ((_a = duration.match(/(\d+)h/)) === null || _a === void 0 ? void 0 : _a[1]) || 0;
         var minutes = ((_b = duration.match(/(\d+)m/)) === null || _b === void 0 ? void 0 : _b[1]) || 0;
-        return "".concat(hours, "h ").concat(minutes, "m");
+        return `${hours}h ${minutes}m`;
     }
     catch (error) {
         return duration;
@@ -140,7 +140,7 @@ function parseRuntime(runtime) {
     if ((0, lodash_1.isNumber)(runtime)) {
         var hours = Math.floor(runtime / 60);
         var minutes = runtime % 60;
-        return "".concat(hours, "h ").concat(minutes, "m");
+        return `${hours}h ${minutes}m`;
     }
     return parseDuration(runtime);
 }
@@ -149,7 +149,7 @@ function headersToObject(headers) {
     if (!headers)
         return {};
     var obj = {};
-    headers.forEach(function (value, key) {
+    headers.forEach((value, key) => {
         obj[key] = value;
     });
     return obj;
@@ -159,7 +159,7 @@ function getYear(date) {
     var _data = new Date(date);
     if (isNaN(_data.getTime()))
         return "";
-    return "".concat(_data.getFullYear());
+    return `${_data.getFullYear()}`;
 }
 exports.getYear = getYear;
 function validDate(date) {

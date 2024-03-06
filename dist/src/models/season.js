@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var Season = /** @class */ (function () {
-    function Season(id, link, name, season, poster, released, year, episodes, tmdbID, imdbID, fetcher, type) {
+class Season {
+    constructor(id, link, name, season, poster, released, year, episodes, tmdbID, imdbID, fetcher, type) {
         this.id = id;
         this.link = link;
         this.name = name;
@@ -15,11 +15,11 @@ var Season = /** @class */ (function () {
         this.imdbID = imdbID;
         this.fetcher = fetcher;
     }
-    Season.fromObject = function (obj) {
+    static fromObject(obj) {
         var _a, _b, _c;
         return new Season(obj.id, obj.link, obj.name, obj.season, obj.poster, obj.released, (_a = obj.year) !== null && _a !== void 0 ? _a : "", obj.episodes, (_b = obj.tmdbID) !== null && _b !== void 0 ? _b : "", (_c = obj.imdbID) !== null && _c !== void 0 ? _c : "", obj.fetcher, obj.type);
-    };
-    Season.prototype.toObject = function () {
+    }
+    toObject() {
         return {
             id: this.id,
             link: this.link,
@@ -34,13 +34,12 @@ var Season = /** @class */ (function () {
             imdbID: this.imdbID,
             fetcher: this.fetcher
         };
-    };
-    Season.prototype.toString = function () {
+    }
+    toString() {
         return JSON.stringify(this.toObject());
-    };
-    Season.prototype.addEpisode = function (episode) {
+    }
+    addEpisode(episode) {
         this.episodes.push(episode);
-    };
-    return Season;
-}());
+    }
+}
 exports.default = Season;
