@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "movies finde rplugin for webview-bridged",
   "main": "index.js",
-  "types": "./dist/src/index.d.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "test": "ts-node test.ts",
     "build": "tsc",
