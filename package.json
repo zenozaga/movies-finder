@@ -2,7 +2,7 @@
   "name": "movies-finder",
   "version": "1.0.0",
   "description": "movies finde rplugin for webview-bridged",
-  "main": "./dist/src/index.js",
+  "main": "index.js",
   "types": "./dist/src/index.d.ts",
   "scripts": {
     "test": "ts-node test.ts",
