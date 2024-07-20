@@ -31,7 +31,7 @@ import { MediaTypes, SerieType, MovieType, SeasonType, SourceType, EpisodeType }
 class Cuevana extends DefaultProvider {
 
     name = "Cuevana";
-    site = "https://w4.cuevana3.ai/";
+    site = "https://cuevana.biz/";
     language = "es";
 
     

@@ -31,7 +31,7 @@ class Tekilaz extends DefaultProvider{
 
     name: string = "Tekilaz";
     language: string = "en";
-    site: string = "https://tekilaz.co/";
+    site: string = "https://cuevana.biz/";
 
     hash:any = null;
 
@@ -42,15 +42,15 @@ class Tekilaz extends DefaultProvider{
 
         if(url.includes("/episodio/") || url.includes("/episodes/")){
 
-            var season = url.match(/temporada-(\d+)/);
-            var episode = url.match(/episodio-(\d+)/);
-            var slug  = url.match(/episodio\/(.*?)\-temporada/);
+            var season = url.match(/temporada\/(\d+)/);
+            var episode = url.match(/episodio\/(\d+)/);
+            var slug  = url.match(/serie\/(.*?)\/temporada/);
 
             return {
                 slug:slug ? slug[1] : null,
                 season:season ? season[1] : null,
                 episode:episode ? episode[1] : null,
-                type:MediaTypes.episode,
+                type: MediaTypes.episode,
             };
 
         }else{
@@ -98,7 +98,7 @@ class Tekilaz extends DefaultProvider{
 
         if (this.hash) return this.hash;
 
-        var html = await this.checkMovePermanent(this.requester?.get(this.site, this.headers()));
+        var html = await this.checkMovePermanent(this.requester?.get(this.site + "inicio", this.headers()));
 
         if (html.indexOf('/_ssgManifest.js') > -1) {
             var hash = html.split('/_ssgManifest.js')[0];
@@ -135,10 +135,12 @@ class Tekilaz extends DefaultProvider{
 
         var $this = this;
 
-        var slug = _.get(json, "slug.name", _.get(json, "slug", ""));
+
+
+        var slug = _.get(json, "slug.name", _.get(json, "slug", _.get(json, "url.slug", "")));
         var episode = _.get(json, "slug.episode", 0);
         var season = _.get(json, "slug.season", 0);
-        var link = join([this.site, _.get(json, "url.slug", "").includes("movies") ? "pelicula" : "serie", slug],"/"); //`${this.site}/${_.get(json, "url.slug", "").includes("movies") ? "pelicula" : "serie"}/${slug}`; join(this.site, slug);
+        var link = join([this.site, slug.includes("movies") ? "pelicula" : "serie", slug],"/").replace("/movies", "").replace("/series",""); //`${this.site}/${_.get(json, "url.slug", "").includes("movies") ? "pelicula" : "serie"}/${slug}`; join(this.site, slug);
         var title = _.get(json, "titles.name", _.get(json, "titles", _.get(json, "title", "")));
         var subtitle = _.get(json, "titles.original.name", "");
         var description = _.get(json, "description.name", _.get(json, "overview", ""));
@@ -244,7 +246,7 @@ class Tekilaz extends DefaultProvider{
                 var poster = _.get(episode, "image", "");
                 var title = _.get(episode, "title", "");
                 var released = _.get(episode, "releaseDate", "");
-                var episode_link = `${$this.site}episodio/${slug}-temporada-${_.get(episode,"slug.season",0)}-episodio-${_.get(episode,"slug.episode",0)}`;
+                var episode_link = `${$this.site}${slug}/temporada/${_.get(episode,"slug.season",0)}/episodio/${_.get(episode,"slug.episode",0)}`.replace("/series","/serie");
 
                 _season.addEpisode(Episode.fromObject({
                     id: episode_link,
@@ -384,17 +386,19 @@ class Tekilaz extends DefaultProvider{
 
 
 
+  
+    /**
+     * Headers for the request
+     * @returns {{}}
+     */
 
-    headers(extra:any = {}) {
-
-        return {
+    headers(extra = {}){
+        return Object.assign({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
-            "Origin": this.site,
-            "Referer": this.site,
-            ...extra
-        };
-     
-        
+            "Origin": getOrigin(this.site) ?? this.site,
+          //  "Host": getHost(this.site),
+            "Referer": this.site
+        }, extra);
     }
 
 
@@ -526,8 +530,6 @@ class Tekilaz extends DefaultProvider{
             var hash = await this.getHash();
             var info = this.urlInfo(idorLink);
 
- 
- 
             var _type   = info.type;
 
             var url = "";
@@ -537,7 +539,7 @@ class Tekilaz extends DefaultProvider{
             }else if(info.type == MediaTypes.tv){
                 url = `${$this.site}/_next/data/${hash}/es/serie/${info.slug}.json?serie=${info.slug}`;
             }else{
-                url = `${$this.site}/_next/data/${hash}/es/episodio/${info.slug}-temporada-${info.season}-episodio-${info.episode}.json`;
+                url = `${$this.site}/_next/data/${hash}/es/serie/${info.slug}/temporada/${info.season}/episodio/${info.episode}.json`;
             }
  
 

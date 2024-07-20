@@ -5,7 +5,7 @@
   "main": "index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "ts-node test.ts",
+    "test": "mocha",
     "build": "tsc",
     "start": "ts-node src/index.ts",
     "dev": "ts-node-dev src/index.ts"
@@ -17,11 +17,15 @@
   "license": "ISC",
   "devDependencies": {
     "@types/lodash": "^4.14.191",
+    "@types/mocha": "^10.0.7",
+    "@types/node": "^20.14.11",
     "axios": "^1.4.0",
+    "mocha": "^10.6.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "buffer": "^6.0.3",
     "cheerio": "^1.0.0-rc.12",
     "lodash": "^4.17.21"
   }

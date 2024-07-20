@@ -28,7 +28,7 @@ class CuevanaChat extends default_provider_1.default {
     constructor() {
         super(...arguments);
         this.name = "CuevanaChat";
-        this.site = "https://cuevana.pics/";
+        this.site = "https://cuevana.biz/";
         this.language = "es";
     }
     match(urlOrID) {
@@ -80,19 +80,19 @@ class CuevanaChat extends default_provider_1.default {
      * @returns {Array<Movie|Serie>}
      */
     parseCollectionHTML(html, selector, type) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
         var $ = (0, cheerio_1.load)(html);
-        var list = $(selector !== null && selector !== void 0 ? selector : "main .MovieList > li > .post");
+        var list = $(selector !== null && selector !== void 0 ? selector : "main .MovieList > li > .TPost");
         var returner = [];
         for (let index = 0; index < list.length; index++) {
             const element = $(list[index]);
-            var link = (_a = element.find("a").attr("href")) !== null && _a !== void 0 ? _a : "";
+            var link = this.fixUrl((_a = element.find("a").attr("href")) !== null && _a !== void 0 ? _a : "");
             var isMovie = (link === null || link === void 0 ? void 0 : link.includes("/serie/")) == false;
             if (type && types_1.MediaTypes.movie == type && isMovie == false)
                 continue;
             if (type && types_1.MediaTypes.tv == type && isMovie == true)
                 continue;
-            var image = (_b = element.find("img[data-src]")) === null || _b === void 0 ? void 0 : _b.attr("data-src");
+            var image = (_b = element.find("[srcSet]")) === null || _b === void 0 ? void 0 : _b.attr("srcset");
             if (!image)
                 image = (_c = element.find(".wp-post-image")) === null || _c === void 0 ? void 0 : _c.attr("src");
             var year = (_f = (_e = (_d = element.find(".Year")) === null || _d === void 0 ? void 0 : _d.text()) === null || _e === void 0 ? void 0 : _e.trim()) !== null && _f !== void 0 ? _f : "";
@@ -105,6 +105,13 @@ class CuevanaChat extends default_provider_1.default {
             var duration = (0, helpers_1.parseRuntime)((_v = (_u = element.find(".Info .Time")) === null || _u === void 0 ? void 0 : _u.text()) === null || _v === void 0 ? void 0 : _v.trim());
             var poster = image ? this.fixUrl(image) : "";
             var background = poster;
+            if (image === null || image === void 0 ? void 0 : image.includes("url=")) {
+                image = this.fixImageUrl(image);
+                var uri = new URL(image);
+                image = (_w = uri.searchParams.get("url")) !== null && _w !== void 0 ? _w : image;
+                poster = image;
+                background = image;
+            }
             if (!isMovie) {
                 returner.push(serie_1.default.fromObject({
                     id: link,
@@ -154,9 +161,10 @@ class CuevanaChat extends default_provider_1.default {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
         var $this = this;
         var $ = (0, cheerio_1.load)(html);
+        var __NEXT_DATA__ = $('script#__NEXT_DATA__').html();
         var id = (_a = $("#top-single")) === null || _a === void 0 ? void 0 : _a.attr("data-id");
-        var poster = (_b = $(".TPost .Image img[data-src]")) === null || _b === void 0 ? void 0 : _b.attr('data-src');
-        var background = (_c = $(".backdrop > .Image img[data-src]")) === null || _c === void 0 ? void 0 : _c.attr("data-src");
+        var poster = this.fixImageUrl(`${(_b = $(".TPost .Image img[srcset]")) === null || _b === void 0 ? void 0 : _b.attr('srcset')}`);
+        var background = this.fixImageUrl(`${(_c = $(".backdrop > .Image img[srcset]")) === null || _c === void 0 ? void 0 : _c.attr("srcset")}`);
         var title = (_e = (_d = $(".TPost .Title:eq(0)")) === null || _d === void 0 ? void 0 : _d.text()) === null || _e === void 0 ? void 0 : _e.trim();
         var subtitle = (_g = (_f = $(".TPost .SubTitle")) === null || _f === void 0 ? void 0 : _f.text()) === null || _g === void 0 ? void 0 : _g.trim();
         var description = (_j = (_h = $(".TPost .Description")) === null || _h === void 0 ? void 0 : _h.text()) === null || _j === void 0 ? void 0 : _j.trim();
@@ -353,7 +361,18 @@ class CuevanaChat extends default_provider_1.default {
         if (url.startsWith("//")) {
             url = "https:" + url;
         }
+        if (url.startsWith("/")) {
+            url = this.site + url.substring(1);
+        }
         return url;
+    }
+    fixImageUrl(url) {
+        var _a;
+        if (!url || !url.includes("url="))
+            return url;
+        url = this.fixUrl(url);
+        var uri = new URL(url);
+        return (_a = uri.searchParams.get("url")) !== null && _a !== void 0 ? _a : url;
     }
     byType(type, options) {
         var _a;
@@ -361,7 +380,7 @@ class CuevanaChat extends default_provider_1.default {
             var url = this.site;
             var isMovie = !(type == "tv" || type == "serie" || type == "series");
             if (!isMovie) {
-                url = `${this.site}serie`;
+                url = `${this.site}series`;
             }
             else {
                 url = `${this.site}peliculas`;
@@ -421,7 +440,7 @@ class CuevanaChat extends default_provider_1.default {
             if (!body)
                 throw new Error("No found results");
             var episodes = this.parseCollectionHTML(body, ".episodes .post");
-            var series = this.parseCollectionHTML(body, ".series_listado .post");
+            var series = this.parseCollectionHTML(body, ".series_listado .TPost");
             var movies = this.parseCollectionHTML(body, ".MovieList.Rows .post");
             var topSeries = this.parseCollectionHTML(body, "#aa-series .TPost");
             var topMovies = this.parseCollectionHTML(body, ".MovieList.top .TPost");

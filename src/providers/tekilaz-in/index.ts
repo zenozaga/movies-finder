@@ -31,7 +31,7 @@ class Tekilaz extends DefaultProvider{
 
     name: string = "Tekilaz";
     language: string = "en";
-    site: string = "https://tekilaz.co/";
+    site: string = "https://cuevana.biz/";
 
     hash:any = null;
 
@@ -98,7 +98,7 @@ class Tekilaz extends DefaultProvider{
 
         if (this.hash) return this.hash;
 
-        var html = await this.checkMovePermanent(this.requester?.get(this.site, this.headers()));
+        var html = await this.checkMovePermanent(this.requester?.get(this.site + "inicio", this.headers()));
 
         if (html.indexOf('/_ssgManifest.js') > -1) {
             var hash = html.split('/_ssgManifest.js')[0];
@@ -384,18 +384,22 @@ class Tekilaz extends DefaultProvider{
 
 
 
+    
+    /**
+     * Headers for the request
+     * @returns {{}}
+     */
 
-    headers(extra:any = {}) {
-
-        return {
+    headers(extra = {}){
+        return Object.assign({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
-            "Origin": this.site,
-            "Referer": this.site,
-            ...extra
-        };
-     
-        
+            "Origin": getOrigin(this.site) ?? this.site,
+          //  "Host": getHost(this.site),
+            "Referer": this.site
+        }, extra);
     }
+
+
 
 
     /**

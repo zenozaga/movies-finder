@@ -29,9 +29,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.use = exports.sort = exports.apis = exports.providers = void 0;
 const requester_1 = __importDefault(require("./models/requester"));
 const tmdb_1 = __importDefault(require("./api/tmdb"));
-// import Tekilaz from "./providers/tekilaz";
+const tekilaz_1 = __importDefault(require("./providers/tekilaz"));
 // import Cuevana from "./providers/cuevana/index";
-const index_1 = __importDefault(require("./providers/cuevana-chat/index"));
+// import CuevanaChat from "./providers/cuevana-chat/index";
 const lodash_1 = __importDefault(require("lodash"));
 const types_1 = require("./types");
 __exportStar(require("./types"), exports);
@@ -44,8 +44,8 @@ __exportStar(require("./types"), exports);
 function providers() {
     return [
         //  new Cuevana(),
-        new index_1.default(),
-        // new Tekilaz()
+        // new CuevanaChat(),
+        new tekilaz_1.default()
     ];
 }
 exports.providers = providers;

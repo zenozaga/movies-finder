@@ -32,5 +32,6 @@ declare abstract class Requester implements RequesterType {
         [key: string]: string;
     } | undefined, noFollow?: boolean): Promise<Response>;
     static from(obj: RequesterType): Requester;
+    static default(): Requester;
 }
 export default Requester;

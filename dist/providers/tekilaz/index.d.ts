@@ -25,7 +25,15 @@ declare class Tekilaz extends DefaultProvider {
      * @param {String} url
      */
     fixUrl(url: string): string;
-    headers(extra?: any): any;
+    /**
+     * Headers for the request
+     * @returns {{}}
+     */
+    headers(extra?: {}): {
+        "User-Agent": string;
+        Origin: string;
+        Referer: string;
+    };
     /**
      * Verify if the url or id is from this provider
      * @param urlOrID

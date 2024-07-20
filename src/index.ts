@@ -5,10 +5,10 @@ import DefaultProvider, { Section } from "./providers/default-provider";
 
 import TMDBAPI from "./api/tmdb";
 
-// import Tekilaz from "./providers/tekilaz";
+import Tekilaz from "./providers/tekilaz";
 // import Cuevana from "./providers/cuevana/index";
 
-import CuevanaChat from "./providers/cuevana-chat/index";
+// import CuevanaChat from "./providers/cuevana-chat/index";
 import _, { escape } from "lodash";
 import { Movie, Episode } from "./types";
 export * from "./types";
@@ -31,8 +31,8 @@ export function providers() : DefaultProvider[] {
 
     return [
       //  new Cuevana(),
-        new CuevanaChat(),
-       // new Tekilaz()
+        // new CuevanaChat(),
+       new Tekilaz()
     ];
 }
 

@@ -38,6 +38,7 @@ declare class CuevanaChat extends DefaultProvider {
      * @param {String} url
      */
     fixUrl(url: string): string;
+    fixImageUrl(url: string): string;
     byType(type: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]>;
     search(query: string, options?: {} | undefined): Promise<(MovieType | SerieType | EpisodeType)[]>;
     getById(idorLink: string, type?: string | undefined): Promise<MovieType | SerieType | EpisodeType>;

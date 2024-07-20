@@ -52,7 +52,7 @@ class Tekilaz extends default_provider_1.default {
         super(...arguments);
         this.name = "Tekilaz";
         this.language = "en";
-        this.site = "https://tekilaz.co/";
+        this.site = "https://cuevana.biz/";
         this.hash = null;
     }
     urlInfo(url) {
@@ -104,7 +104,7 @@ class Tekilaz extends default_provider_1.default {
         return __awaiter(this, void 0, void 0, function* () {
             if (this.hash)
                 return this.hash;
-            var html = yield this.checkMovePermanent((_a = this.requester) === null || _a === void 0 ? void 0 : _a.get(this.site, this.headers()));
+            var html = yield this.checkMovePermanent((_a = this.requester) === null || _a === void 0 ? void 0 : _a.get(this.site + "inicio", this.headers()));
             if (html.indexOf('/_ssgManifest.js') > -1) {
                 var hash = html.split('/_ssgManifest.js')[0];
                 hash = hash.substring(hash.lastIndexOf('/') + 1);
@@ -309,8 +309,18 @@ class Tekilaz extends default_provider_1.default {
         }
         return url;
     }
+    /**
+     * Headers for the request
+     * @returns {{}}
+     */
     headers(extra = {}) {
-        return Object.assign({ "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36", "Origin": this.site, "Referer": this.site }, extra);
+        var _a;
+        return Object.assign({
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36",
+            "Origin": (_a = (0, helpers_1.getOrigin)(this.site)) !== null && _a !== void 0 ? _a : this.site,
+            //  "Host": getHost(this.site),
+            "Referer": this.site
+        }, extra);
     }
     /**
      * Verify if the url or id is from this provider

@@ -28,7 +28,7 @@ class Cuevana extends default_provider_1.default {
     constructor() {
         super(...arguments);
         this.name = "Cuevana";
-        this.site = "https://w4.cuevana3.ai/";
+        this.site = "https://cuevana.biz/";
         this.language = "es";
     }
     match(urlOrID) {

@@ -32,7 +32,7 @@ import { MediaTypes, SerieType, MovieType, SeasonType, SourceType, EpisodeType }
 class CuevanaChat extends DefaultProvider {
 
     name = "CuevanaChat";
-    site = "https://cuevana.pics/";
+    site = "https://cuevana.biz/";
     language = "es";
 
     
@@ -99,20 +99,20 @@ class CuevanaChat extends DefaultProvider {
     parseCollectionHTML(html:string, selector?:string, type?:string) : Array<MovieType|SerieType|EpisodeType> {
 
         var $ = load(html)
-        var list = $(selector ?? "main .MovieList > li > .post");
+        var list = $(selector ?? "main .MovieList > li > .TPost");
         var returner = [];
 
 
         for (let index = 0; index < list.length; index++) {
             
             const element = $(list[index]);
-            var link:string = element.find("a").attr("href") ?? "";
+            var link:string = this.fixUrl(element.find("a").attr("href") ?? "");
             var isMovie = link?.includes("/serie/") == false;
  
             if(type && MediaTypes.movie == type && isMovie == false) continue;
             if(type && MediaTypes.tv == type && isMovie == true) continue;
 
-            var image = element.find("img[data-src]")?.attr("data-src");
+            var image = element.find("[srcSet]")?.attr("srcset");
             if (!image) image = element.find(".wp-post-image")?.attr("src");
             var year = element.find(".Year")?.text()?.trim() ?? "";
             var title = element.find(".Title:eq(0)")?.text()?.trim();
@@ -127,6 +127,14 @@ class CuevanaChat extends DefaultProvider {
             var poster = image ? this.fixUrl(image) : "";
             var background = poster;
 
+
+            if(image?.includes("url=")){
+                image = this.fixImageUrl(image);
+                var uri = new URL(image);
+                image = uri.searchParams.get("url") ?? image;
+                poster = image;
+                background = image;
+            }
 
 
             if (!isMovie) {
@@ -193,14 +201,16 @@ class CuevanaChat extends DefaultProvider {
 
         var $ = load(html);
 
+        var __NEXT_DATA__ = $('script#__NEXT_DATA__').html();
         var id = $("#top-single")?.attr("data-id");
-        var poster = $(".TPost .Image img[data-src]")?.attr('data-src');
-        var background = $(".backdrop > .Image img[data-src]")?.attr("data-src");
+        var poster = this.fixImageUrl(`${$(".TPost .Image img[srcset]")?.attr('srcset')}`);
+        var background = this.fixImageUrl(`${$(".backdrop > .Image img[srcset]")?.attr("srcset")}`);
         var title = $(".TPost .Title:eq(0)")?.text()?.trim();
         var subtitle = $(".TPost .SubTitle")?.text()?.trim();
         var description = $(".TPost .Description")?.text()?.trim();
         var release = $(".TPost .meta")?.text()?.trim();
         var rating = $("#TPVotes")?.attr("data-percent")?.trim();
+        
 
         var canonical = $("link[rel='canonical']")?.attr("href") ?? "";
         var _season_episode = canonical?.match(/\-([0-9].*)x([0-9].*)/);
@@ -216,8 +226,7 @@ class CuevanaChat extends DefaultProvider {
         var servers:Source[] = [];
         var relates:(MovieType|SerieType)[] = [];
 
-
-
+ 
 
         if (poster?.includes('tmdb.org')) {
             poster = poster.replace(/\/p\/(.*?)\//g, "/p/original/");
@@ -437,6 +446,8 @@ class CuevanaChat extends DefaultProvider {
 
     }
 
+
+ 
     /**
      * 
      * @param {String} url 
@@ -446,8 +457,24 @@ class CuevanaChat extends DefaultProvider {
         if (url.startsWith("//")) {
             url = "https:" + url;
         }
+        
+        if(url.startsWith("/")){
+            url = this.site + url.substring(1);  
+        }
 
         return url;
+    }
+
+
+    fixImageUrl(url:string) {
+
+        if(!url || !url.includes("url=")) return url;   
+
+        url = this.fixUrl(url);
+        var uri = new URL(url);
+
+        return uri.searchParams.get("url") ?? url;
+        
     }
  
          
@@ -457,7 +484,7 @@ class CuevanaChat extends DefaultProvider {
         var isMovie = !( type == "tv" || type == "serie" || type == "series");
    
         if(!isMovie){
-            url = `${this.site}serie`;
+            url = `${this.site}series`;
         }else{
             url = `${this.site}peliculas`;
         }
@@ -538,7 +565,7 @@ class CuevanaChat extends DefaultProvider {
         if(!body) throw new Error("No found results");
 
         var episodes = this.parseCollectionHTML(body, ".episodes .post");
-        var series = this.parseCollectionHTML(body, ".series_listado .post");
+        var series = this.parseCollectionHTML(body, ".series_listado .TPost");
         var movies = this.parseCollectionHTML(body, ".MovieList.Rows .post");
         var topSeries = this.parseCollectionHTML(body, "#aa-series .TPost");
         var topMovies = this.parseCollectionHTML(body, ".MovieList.top .TPost");

@@ -3,4 +3,5 @@ node_modules
 src
 web
 example
+tests
 dist/index.html
